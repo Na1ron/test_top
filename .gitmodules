@@ -1,0 +1,3 @@
+[submodule "fpga/test_fpga"]
+	path = fpga/test_fpga
+	url = git@gitlab.com:Na1ron/submodule-repo.git
