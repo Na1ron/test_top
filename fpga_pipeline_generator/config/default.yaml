@@ -1,0 +1,43 @@
+# Конфигурация по умолчанию для FPGA Pipeline Generator
+
+# Настройки стадий
+stages:
+  elab:
+    tags: ["soc-fpga-elab"]
+    make_target: "elab"
+    description: "FPGA Elaboration"
+  synth:
+    tags: ["soc-fpga-synth"]
+    make_target: "synth"
+    description: "FPGA Synthesis"
+  bitstream:
+    tags: ["soc-fpga-synth"]
+    make_target: "bitstream"
+    description: "FPGA Bitstream Generation"
+
+# Правила выполнения задач
+default_rules:
+  - if: "$CI_MERGE_REQUEST_ID"
+
+# Переменные по умолчанию
+default_variables:
+  FPGA_WORKSPACE: "/workspace"
+  MAKEFILE_PATH: "Makefile"
+
+# Настройки шаблонов
+templates:
+  pipeline: "pipeline.j2"
+  job: "job.j2"
+
+# Настройки вывода
+output:
+  indent: 2
+  default_filename: "generated_pipeline.yml"
+  
+# Поддерживаемые стадии
+supported_stages: ["elab", "synth", "bitstream"]
+
+# Настройки поиска файлов
+file_search:
+  fpga_dir: "fpga"
+  config_filename: "cfg.yaml"

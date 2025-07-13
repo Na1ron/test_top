@@ -1,0 +1,13 @@
+{{ job_name }}:
+  stage: {{ stage }}
+  tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+  script:
+    - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
+    - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
+    #- "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
+{% if rules %}
+  rules:
+{% for rule in rules %}
+    - if: "{{ rule.if }}"
+{%- endfor %}
+{%- endif %}

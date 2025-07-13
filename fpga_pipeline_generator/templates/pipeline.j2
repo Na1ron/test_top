@@ -1,0 +1,9 @@
+stages:
+{% for stage in stages %}
+  - {{ stage }}
+{% endfor %}
+
+{% for job in jobs %}
+
+{{ job | indent(0, true) }}
+{% endfor %}
