@@ -1,93 +1,314 @@
-# top_repo
+# FPGA Pipeline Generator
 
+Утилита для автоматической генерации динамических пайплайнов на основе конфигурационных файлов cfg.yaml из сабмодулей FPGA.
 
+## Описание
 
-## Getting started
+Утилита парсит файлы `cfg.yaml` из всех сабмодулей в папке `fpga` и создает YAML конфигурацию для динамического пайплайна. Генерация происходит на основе переменной окружения `FPGA_TARGET_ARTIFACT`, которая определяет, какие стадии (elab, synth, bitstream) должны быть включены в пайплайн.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Установка
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Установка как пакет (рекомендуется)
+```bash
+# Обычная установка
+pip install .
 
-## Add your files
+# Установка в режиме разработки
+pip install -e .
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+# Установка с дополнительными зависимостями для разработки
+pip install -e .[dev]
+
+# Установка с зависимостями для документации
+pip install -e .[docs]
+```
+
+### Использование без установки
+```bash
+# Запуск как модуль Python
+python -m fpga_pipeline_generator
+
+# Или через упрощенный CLI
+./fpga_gen.py
+```
+
+### Для разработчиков
+```bash
+# Клонирование и установка в режиме разработки
+git clone <repository-url>
+cd fpga-pipeline-generator
+pip install -e .[dev]
+
+# Запуск тестов
+pytest
+
+# Форматирование кода
+black .
+isort .
+
+# Проверка типов
+mypy fpga_pipeline_generator
+```
+
+## Использование
+
+### 1. Установка переменной окружения
+
+Установите переменную `FPGA_TARGET_ARTIFACT` со списком нужных стадий через запятую:
+
+```bash
+# Только синтез
+export FPGA_TARGET_ARTIFACT=synth
+
+# Синтез и elaboration
+export FPGA_TARGET_ARTIFACT=synth,elab
+
+# Все стадии
+export FPGA_TARGET_ARTIFACT=elab,synth,bitstream
+```
+
+### 2. Запуск утилиты
+
+```bash
+# Базовое использование
+python -m fpga_pipeline_generator
+# или
+./fpga_gen.py
+
+# Генерация в указанный файл
+python -m fpga_pipeline_generator -o my_pipeline.yml
+
+# Установка стадий через аргумент (переопределяет переменную окружения)
+python -m fpga_pipeline_generator --stages elab,synth -o custom_pipeline.yml
+
+# Просмотр результата без сохранения
+python -m fpga_pipeline_generator --dry-run
+
+# Подробный вывод для отладки
+python -m fpga_pipeline_generator --verbose
+
+# Использование пользовательской конфигурации
+python -m fpga_pipeline_generator -c my_config.yaml
+```
+
+### 3. Справка по командам
+
+```bash
+python -m fpga_pipeline_generator --help
+```
+
+## Формат cfg.yaml
+
+Утилита ожидает файлы `cfg.yaml` в следующем формате:
+
+```yaml
+elab:
+  - target: lsio_au_elab
+    vars: [FPGA_BOARD_TYPE=HTG960]
+
+synth:
+  - target: lsio_au
+  - target: lsio_au_2
+    vars: [FPGA_BOARD_TYPE=VCU118, USE_ORIG_MEM=1]
+    options: [--write-netlist, --disable-reports]
+
+bitstream:
+  - target: lsio_au_cosim
+    vars: [FPGA_BOARD_TYPE=HTG960]
+    options: [--vivado-ver=2021.1]
+```
+
+### Поля конфигурации:
+
+- **target** (обязательное) - название цели для сборки
+- **vars** (необязательное) - список переменных в формате `VARIABLE=VALUE`
+- **options** (необязательное) - список опций командной строки
+
+## Команда echo с распаршенными данными
+
+Каждая сгенерированная задача содержит специальную команду `echo`, которая выводит все распаршенные данные из cfg.yaml:
+
+### Формат команды:
+```bash
+echo {stage_name} [VAR='переменные'] [OPTIONS='опции'] TARGET='цель'
+```
+
+### Примеры:
+
+**Минимальная конфигурация** (только target):
+```yaml
+elab:
+  - target: simple_target
+```
+Результат: `echo elab TARGET='simple_target'`
+
+**С переменными** (target + vars):
+```yaml
+synth:
+  - target: board_target
+    vars: [BOARD=NEXYS, MODE=DEBUG]
+```
+Результат: `echo synth VAR='BOARD=NEXYS MODE=DEBUG' TARGET='board_target'`
+
+**С опциями** (target + options):
+```yaml
+bitstream:
+  - target: fast_target
+    options: [--fast, --verbose]
+```
+Результат: `echo bitstream OPTIONS='--fast --verbose' TARGET='fast_target'`
+
+**Полная конфигурация** (target + vars + options):
+```yaml
+synth:
+  - target: full_target
+    vars: [TOOL=VIVADO, VERSION=2023.1]
+    options: [--parallel, --optimize]
+```
+Результат: `echo synth VAR='TOOL=VIVADO VERSION=2023.1' OPTIONS='--parallel --optimize' TARGET='full_target'`
+
+### Правила формирования:
+- Если `vars` отсутствует → часть `VAR='...'` не добавляется
+- Если `options` отсутствует → часть `OPTIONS='...'` не добавляется  
+- `TARGET='...'` присутствует всегда
+- Порядок: `stage_name` → `VAR` → `OPTIONS` → `TARGET`
+
+## Теги раннеров (Runner Tags)
+
+Утилита автоматически назначает теги раннеров в зависимости от стадии FPGA пайплайна:
+
+### Логика назначения тегов:
+
+| Стадия | Тег раннера | Описание |
+|--------|-------------|----------|
+| `elab` | `devops-elab` | Раннеры для elaboration задач |
+| `synth` | `devops-synth` | Раннеры для synthesis задач |
+| `bitstream` | `devops-synth` | Раннеры для bitstream задач (используют тот же пул что и synth) |
+
+### Примеры:
+
+**Elaboration задача:**
+```yaml
+elab_target_name_submodule:
+  stage: elab
+  tags: ["devops-elab"]  # ← Раннер для elab
+  # ... остальная конфигурация
+```
+
+**Synthesis задача:**
+```yaml
+synth_target_name_submodule:
+  stage: synth
+  tags: ["devops-synth"]  # ← Раннер для synth
+  # ... остальная конфигурация
+```
+
+**Bitstream задача:**
+```yaml
+bitstream_target_name_submodule:
+  stage: bitstream
+  tags: ["devops-synth"]  # ← Тот же раннер что и для synth
+  # ... остальная конфигурация
+```
+
+### Обоснование:
+- **`elab`** использует отдельные раннеры, так как требует меньше ресурсов
+- **`synth` и `bitstream`** используют общие мощные раннеры, так как обе стадии ресурсоемкие
+
+## Структура проекта
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/Na1ron/top_repo.git
-git branch -M main
-git push -uf origin main
+.
+├── fpga/
+│   ├── submodule1/
+│   │   └── cfg.yaml
+│   ├── submodule2/
+│   │   └── cfg.yaml
+│   └── ...
+├── fpga_pipeline_generator/         # Основной пакет
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── main.py                      # Точка входа
+│   ├── core/                        # Основная логика
+│   │   ├── config_loader.py
+│   │   ├── parser.py
+│   │   └── generator.py
+│   ├── templates/                   # Jinja2 шаблоны
+│   │   ├── pipeline.j2
+│   │   └── job.j2
+│   ├── config/                      # Конфигурации
+│   │   └── default.yaml
+│   └── utils/                       # Утилиты
+│       └── file_utils.py
+├── fpga_gen.py                      # Упрощенный CLI
+├── pyproject.toml                   # Современная конфигурация проекта
+├── LICENSE                          # Лицензия MIT
+└── README.md
 ```
 
-## Integrate with your tools
+## Пример сгенерированного пайплайна
 
-- [ ] [Set up project integrations](https://gitlab.com/Na1ron/top_repo/-/settings/integrations)
+При `FPGA_TARGET_ARTIFACT=synth,elab` и наличии cfg.yaml в сабмодуле `test_fpga`:
 
-## Collaborate with your team
+```yaml
+stages:
+  - synth
+  - elab
+variables:
+  FPGA_TARGET_ARTIFACT: synth,elab
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+elab_lsio_au_elab_test_fpga:
+  stage: elab
+  tags: ["devops-elab"]
+  script:
+    - "echo elab VAR='FPGA_BOARD_TYPE=HTG960' TARGET='lsio_au_elab'"
+    - "echo 'Executing: make -f Makefile elab FPGA_BOARD_TYPE=HTG960'"
+    - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
 
-## Test and Deploy
+synth_lsio_au_test_fpga:
+  stage: synth
+  tags: ["devops-synth"]
+  script:
+    - "echo synth TARGET='lsio_au'"
+    - "echo 'Executing: make -f Makefile synth '"
+    - "make -f Makefile synth "
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
 
-Use the built-in continuous integration in GitLab.
+synth_lsio_au_2_test_fpga:
+  stage: synth
+  tags: ["devops-synth"]
+  script:
+    - "echo synth VAR='FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1' OPTIONS='--write-netlist --disable-reports' TARGET='lsio_au_2'"
+    - "echo 'Executing: make -f Makefile synth FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1 --write-netlist --disable-reports'"
+    - "make -f Makefile synth FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1 --write-netlist --disable-reports"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Особенности
 
-***
+1. **Современный стандарт**: Использует `pyproject.toml` вместо устаревших `setup.py` и `requirements.txt`
+2. **Шаблонизация с Jinja2**: Поддержка Jinja2 шаблонов для гибкой настройки генерации (с fallback режимом)
+3. **Модульная архитектура**: Полноценный Python пакет с разделением ответственности
+4. **Конфигурируемость**: Настройка через YAML конфигурации с возможностью переопределения
+5. **CI/CD готовность**: Генерация включает `tags`, `rules`, и корректные `make` команды
+6. **Фильтрация по переменной окружения**: Утилита создает только те стадии, которые указаны в `FPGA_TARGET_ARTIFACT`
+7. **Поддержка множественных сабмодулей**: Автоматически обнаруживает все сабмодули в папке `fpga`
+8. **Наследование переменных**: Переменные из секции `vars` добавляются в конфигурацию задач
+9. **Поддержка опций**: Опции из секции `options` передаются в переменную `FPGA_OPTIONS`
+10. **Уникальные имена задач**: Имена формируются как `{stage}_{target}_{submodule}`
+11. **CLI интерфейс**: Богатый интерфейс командной строки с различными опциями
 
-# Editing this README
+## Отладка
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Для отладки установите переменную окружения с выводом отладочной информации:
 
-## Suggestions for a good README
+```bash
+export FPGA_TARGET_ARTIFACT=synth,elab
+python generate_fpga_pipeline.py
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Утилита выведет информацию о найденных сабмодулях и созданных задачах.
