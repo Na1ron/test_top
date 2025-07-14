@@ -89,15 +89,30 @@ class FPGAPipelineGenerator:
         if target_options:
             job_variables['FPGA_OPTIONS'] = " ".join(target_options)
         
+        # Формируем строки для команды echo
+        vars_string = ""
+        if target_vars:
+            vars_parts = []
+            for var_name, var_value in target_vars.items():
+                vars_parts.append(f"{var_name}={var_value}")
+            vars_string = " ".join(vars_parts)
+        
+        options_string = ""
+        if target_options:
+            options_string = " ".join(target_options)
+        
         return {
             'job_name': self.generate_job_name(stage, target_name, submodule),
             'stage': stage,
+            'target_name': target_name,
             'tags': stage_config.get('tags', [f"fpga-{stage}"]),
             'make_target': stage_config.get('make_target', stage),
             'make_args': make_args.strip(),
             'makefile_path': default_vars.get('MAKEFILE_PATH', 'Makefile'),
             'target_vars': target_vars,
             'target_options': " ".join(target_options) if target_options else None,
+            'vars_string': vars_string if vars_string else None,
+            'options_string': options_string if options_string else None,
             'rules': default_rules,
             'job_variables': job_variables
         }
@@ -118,16 +133,29 @@ class FPGAPipelineGenerator:
         """Запасной способ генерации задачи без Jinja2."""
         job_name = job_context['job_name']
         stage = job_context['stage']
+        target_name = job_context['target_name']
         tags = job_context['tags']
         make_target = job_context['make_target']
         make_args = job_context['make_args']
         makefile_path = job_context['makefile_path']
+        vars_string = job_context.get('vars_string', '')
+        options_string = job_context.get('options_string', '')
+        
+        # Формируем echo команду с данными из cfg.yaml
+        echo_parts = [stage]
+        if vars_string:
+            echo_parts.append(f"VAR='{vars_string}'")
+        if options_string:
+            echo_parts.append(f"OPTIONS='{options_string}'")
+        echo_parts.append(f"TARGET='{target_name}'")
+        echo_command = " ".join(echo_parts)
         
         job_yaml = f"""
 {job_name}:
   stage: {stage}
   tags: {tags}
   script:
+    - "echo {echo_command}"
     - "echo 'Executing: make -f {makefile_path} {make_target} {make_args}'"
     - "make -f {makefile_path} {make_target} {make_args}"
   rules:
