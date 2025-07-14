@@ -124,6 +124,55 @@ bitstream:
 - **vars** (необязательное) - список переменных в формате `VARIABLE=VALUE`
 - **options** (необязательное) - список опций командной строки
 
+## Команда echo с распаршенными данными
+
+Каждая сгенерированная задача содержит специальную команду `echo`, которая выводит все распаршенные данные из cfg.yaml:
+
+### Формат команды:
+```bash
+echo {stage_name} [VAR='переменные'] [OPTIONS='опции'] TARGET='цель'
+```
+
+### Примеры:
+
+**Минимальная конфигурация** (только target):
+```yaml
+elab:
+  - target: simple_target
+```
+Результат: `echo elab TARGET='simple_target'`
+
+**С переменными** (target + vars):
+```yaml
+synth:
+  - target: board_target
+    vars: [BOARD=NEXYS, MODE=DEBUG]
+```
+Результат: `echo synth VAR='BOARD=NEXYS MODE=DEBUG' TARGET='board_target'`
+
+**С опциями** (target + options):
+```yaml
+bitstream:
+  - target: fast_target
+    options: [--fast, --verbose]
+```
+Результат: `echo bitstream OPTIONS='--fast --verbose' TARGET='fast_target'`
+
+**Полная конфигурация** (target + vars + options):
+```yaml
+synth:
+  - target: full_target
+    vars: [TOOL=VIVADO, VERSION=2023.1]
+    options: [--parallel, --optimize]
+```
+Результат: `echo synth VAR='TOOL=VIVADO VERSION=2023.1' OPTIONS='--parallel --optimize' TARGET='full_target'`
+
+### Правила формирования:
+- Если `vars` отсутствует → часть `VAR='...'` не добавляется
+- Если `options` отсутствует → часть `OPTIONS='...'` не добавляется  
+- `TARGET='...'` присутствует всегда
+- Порядок: `stage_name` → `VAR` → `OPTIONS` → `TARGET`
+
 ## Структура проекта
 
 ```
@@ -179,27 +228,23 @@ elab_lsio_au_elab_test_fpga:
 
 synth_lsio_au_test_fpga:
   stage: synth
+  tags: ["devops-sandbox-shell"]
   script:
-    - echo "Выполняется synth для цели lsio_au"
-    - echo "Сабмодуль: test_fpga"
-  variables:
-    FPGA_STAGE: synth
-    FPGA_TARGET: lsio_au
-    FPGA_SUBMODULE: test_fpga
+    - "echo synth TARGET='lsio_au'"
+    - "echo 'Executing: make -f Makefile synth '"
+    - "make -f Makefile synth "
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
 
 synth_lsio_au_2_test_fpga:
   stage: synth
+  tags: ["devops-sandbox-shell"]
   script:
-    - echo "Выполняется synth для цели lsio_au_2"
-    - echo "Сабмодуль: test_fpga"
-    - echo "Опции: --write-netlist --disable-reports"
-  variables:
-    FPGA_STAGE: synth
-    FPGA_TARGET: lsio_au_2
-    FPGA_SUBMODULE: test_fpga
-    FPGA_BOARD_TYPE: VCU118
-    USE_ORIG_MEM: "1"
-    FPGA_OPTIONS: --write-netlist --disable-reports
+    - "echo synth VAR='FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1' OPTIONS='--write-netlist --disable-reports' TARGET='lsio_au_2'"
+    - "echo 'Executing: make -f Makefile synth FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1 --write-netlist --disable-reports'"
+    - "make -f Makefile synth FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1 --write-netlist --disable-reports"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
 ```
 
 ## Особенности
