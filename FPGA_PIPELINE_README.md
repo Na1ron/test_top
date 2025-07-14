@@ -173,6 +173,48 @@ synth:
 - `TARGET='...'` присутствует всегда
 - Порядок: `stage_name` → `VAR` → `OPTIONS` → `TARGET`
 
+## Теги раннеров (Runner Tags)
+
+Утилита автоматически назначает теги раннеров в зависимости от стадии FPGA пайплайна:
+
+### Логика назначения тегов:
+
+| Стадия | Тег раннера | Описание |
+|--------|-------------|----------|
+| `elab` | `devops-elab` | Раннеры для elaboration задач |
+| `synth` | `devops-synth` | Раннеры для synthesis задач |
+| `bitstream` | `devops-synth` | Раннеры для bitstream задач (используют тот же пул что и synth) |
+
+### Примеры:
+
+**Elaboration задача:**
+```yaml
+elab_target_name_submodule:
+  stage: elab
+  tags: ["devops-elab"]  # ← Раннер для elab
+  # ... остальная конфигурация
+```
+
+**Synthesis задача:**
+```yaml
+synth_target_name_submodule:
+  stage: synth
+  tags: ["devops-synth"]  # ← Раннер для synth
+  # ... остальная конфигурация
+```
+
+**Bitstream задача:**
+```yaml
+bitstream_target_name_submodule:
+  stage: bitstream
+  tags: ["devops-synth"]  # ← Тот же раннер что и для synth
+  # ... остальная конфигурация
+```
+
+### Обоснование:
+- **`elab`** использует отдельные раннеры, так как требует меньше ресурсов
+- **`synth` и `bitstream`** используют общие мощные раннеры, так как обе стадии ресурсоемкие
+
 ## Структура проекта
 
 ```
@@ -217,18 +259,17 @@ variables:
 
 elab_lsio_au_elab_test_fpga:
   stage: elab
+  tags: ["devops-elab"]
   script:
-    - echo "Выполняется elab для цели lsio_au_elab"
-    - echo "Сабмодуль: test_fpga"
-  variables:
-    FPGA_STAGE: elab
-    FPGA_TARGET: lsio_au_elab
-    FPGA_SUBMODULE: test_fpga
-    FPGA_BOARD_TYPE: HTG960
+    - "echo elab VAR='FPGA_BOARD_TYPE=HTG960' TARGET='lsio_au_elab'"
+    - "echo 'Executing: make -f Makefile elab FPGA_BOARD_TYPE=HTG960'"
+    - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
 
 synth_lsio_au_test_fpga:
   stage: synth
-  tags: ["devops-sandbox-shell"]
+  tags: ["devops-synth"]
   script:
     - "echo synth TARGET='lsio_au'"
     - "echo 'Executing: make -f Makefile synth '"
@@ -238,7 +279,7 @@ synth_lsio_au_test_fpga:
 
 synth_lsio_au_2_test_fpga:
   stage: synth
-  tags: ["devops-sandbox-shell"]
+  tags: ["devops-synth"]
   script:
     - "echo synth VAR='FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1' OPTIONS='--write-netlist --disable-reports' TARGET='lsio_au_2'"
     - "echo 'Executing: make -f Makefile synth FPGA_BOARD_TYPE=VCU118 USE_ORIG_MEM=1 --write-netlist --disable-reports'"
