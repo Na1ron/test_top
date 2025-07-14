@@ -6,10 +6,24 @@
 
 Утилита парсит файлы `cfg.yaml` из всех сабмодулей в папке `fpga` и создает YAML конфигурацию для динамического пайплайна. Генерация происходит на основе переменной окружения `FPGA_TARGET_ARTIFACT`, которая определяет, какие стадии (elab, synth, bitstream) должны быть включены в пайплайн.
 
-## Установка зависимостей
+## Установка
 
+### Из исходников
 ```bash
+# Установка зависимостей
 pip install -r requirements.txt
+
+# Или установка как пакет (рекомендуется)
+pip install .
+```
+
+### Использование без установки
+```bash
+# Запуск как модуль
+python -m fpga_pipeline_generator
+
+# Или через упрощенный CLI
+./fpga_gen.py
 ```
 
 ## Использование
@@ -32,11 +46,31 @@ export FPGA_TARGET_ARTIFACT=elab,synth,bitstream
 ### 2. Запуск утилиты
 
 ```bash
-# Генерация в файл generated_pipeline.yml (по умолчанию)
-python generate_fpga_pipeline.py
+# Базовое использование
+python -m fpga_pipeline_generator
+# или
+./fpga_gen.py
 
 # Генерация в указанный файл
-python generate_fpga_pipeline.py my_pipeline.yml
+python -m fpga_pipeline_generator -o my_pipeline.yml
+
+# Установка стадий через аргумент (переопределяет переменную окружения)
+python -m fpga_pipeline_generator --stages elab,synth -o custom_pipeline.yml
+
+# Просмотр результата без сохранения
+python -m fpga_pipeline_generator --dry-run
+
+# Подробный вывод для отладки
+python -m fpga_pipeline_generator --verbose
+
+# Использование пользовательской конфигурации
+python -m fpga_pipeline_generator -c my_config.yaml
+```
+
+### 3. Справка по командам
+
+```bash
+python -m fpga_pipeline_generator --help
 ```
 
 ## Формат cfg.yaml
@@ -76,7 +110,23 @@ bitstream:
 │   ├── submodule2/
 │   │   └── cfg.yaml
 │   └── ...
-├── generate_fpga_pipeline.py
+├── fpga_pipeline_generator/         # Основной пакет
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── main.py                      # Точка входа
+│   ├── core/                        # Основная логика
+│   │   ├── config_loader.py
+│   │   ├── parser.py
+│   │   └── generator.py
+│   ├── templates/                   # Jinja2 шаблоны
+│   │   ├── pipeline.j2
+│   │   └── job.j2
+│   ├── config/                      # Конфигурации
+│   │   └── default.yaml
+│   └── utils/                       # Утилиты
+│       └── file_utils.py
+├── fpga_gen.py                      # Упрощенный CLI
+├── setup.py                         # Установка пакета
 ├── requirements.txt
 └── README.md
 ```
@@ -130,11 +180,16 @@ synth_lsio_au_2_test_fpga:
 
 ## Особенности
 
-1. **Фильтрация по переменной окружения**: Утилита создает только те стадии, которые указаны в `FPGA_TARGET_ARTIFACT`
-2. **Поддержка множественных сабмодулей**: Автоматически обнаруживает все сабмодули в папке `fpga`
-3. **Наследование переменных**: Переменные из секции `vars` добавляются в конфигурацию задач
-4. **Поддержка опций**: Опции из секции `options` передаются в переменную `FPGA_OPTIONS`
-5. **Уникальные имена задач**: Имена формируются как `{stage}_{target}_{submodule}`
+1. **Шаблонизация с Jinja2**: Поддержка Jinja2 шаблонов для гибкой настройки генерации (с fallback режимом)
+2. **Модульная архитектура**: Полноценный Python пакет с разделением ответственности
+3. **Конфигурируемость**: Настройка через YAML конфигурации с возможностью переопределения
+4. **CI/CD готовность**: Генерация включает `tags`, `rules`, и корректные `make` команды
+5. **Фильтрация по переменной окружения**: Утилита создает только те стадии, которые указаны в `FPGA_TARGET_ARTIFACT`
+6. **Поддержка множественных сабмодулей**: Автоматически обнаруживает все сабмодули в папке `fpga`
+7. **Наследование переменных**: Переменные из секции `vars` добавляются в конфигурацию задач
+8. **Поддержка опций**: Опции из секции `options` передаются в переменную `FPGA_OPTIONS`
+9. **Уникальные имена задач**: Имена формируются как `{stage}_{target}_{submodule}`
+10. **CLI интерфейс**: Богатый интерфейс командной строки с различными опциями
 
 ## Отладка
 
