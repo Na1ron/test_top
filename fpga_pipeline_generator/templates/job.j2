@@ -1,6 +1,6 @@
 {{ job_name }}:
   stage: {{ stage }}
-  tags: {{ tags | tojson }}
+  tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
     - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
     - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
@@ -16,12 +16,12 @@
 {%- if rules %}
   rules:
 {%- for rule in rules %}
-    - {{ rule | tojson }}
+    - if: "{{ rule.if }}"
 {%- endfor %}
 {%- endif %}
 {%- if job_variables %}
   variables:
 {%- for var_name, var_value in job_variables.items() %}
-    {{ var_name }}: {{ var_value | tojson }}
+    {{ var_name }}: "{{ var_value }}"
 {%- endfor %}
 {%- endif %}

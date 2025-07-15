@@ -1,0 +1,13 @@
+elab:
+  - target: "lsio_au_elab"
+    variables:
+      FPGA_BOARD_TYPE: "HTG960"
+      FPGA_DEVICE: "xczu7ev"
+    options: []
+
+synth:
+  - target: "lsio_au_synth"
+    variables:
+      FPGA_BOARD_TYPE: "HTG960"
+      FPGA_DEVICE: "xczu7ev"
+    options: ["--optimize"]
