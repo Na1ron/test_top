@@ -16,5 +16,6 @@ variables:
 {%- endif %}
 
 {%- for job in jobs %}
+
 {{ job | indent(0, true) }}
 {%- endfor %}

@@ -1,0 +1,46 @@
+# Generated FPGA Pipeline
+stages:
+  - elab
+  - synth
+
+elab_lsio_au_elab_test_fpga:
+  stage: elab
+  tags: ["devops-elab"]
+  script:
+    - "echo elab VAR='FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev' TARGET='lsio_au_elab'"
+    - "echo 'Executing: make -f Makefile elab FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev'"
+    - "export FPGA_BOARD_TYPE=HTG960"
+    - "export FPGA_DEVICE=xczu7ev"
+    - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
+  variables:
+    FPGA_STAGE: "elab"
+    FPGA_TARGET: "lsio_au_elab"
+    FPGA_SUBMODULE: "test_fpga"
+    FPGA_WORKSPACE: "/workspace"
+    MAKEFILE_PATH: "Makefile"
+    FPGA_BOARD_TYPE: "HTG960"
+    FPGA_DEVICE: "xczu7ev"
+
+synth_lsio_au_synth_test_fpga:
+  stage: synth
+  tags: ["devops-synth"]
+  script:
+    - "echo synth VAR='FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev' OPTIONS='--optimize' TARGET='lsio_au_synth'"
+    - "echo 'Executing: make -f Makefile synth FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev --optimize'"
+    - "export FPGA_BOARD_TYPE=HTG960"
+    - "export FPGA_DEVICE=xczu7ev"
+    - "make -f Makefile synth FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev --optimize"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
+  variables:
+    FPGA_STAGE: "synth"
+    FPGA_TARGET: "lsio_au_synth"
+    FPGA_SUBMODULE: "test_fpga"
+    FPGA_WORKSPACE: "/workspace"
+    MAKEFILE_PATH: "Makefile"
+    FPGA_BOARD_TYPE: "HTG960"
+    FPGA_DEVICE: "xczu7ev"
+    FPGA_OPTIONS: "--optimize"
+

@@ -2,16 +2,17 @@
 
 ## Быстрый старт
 
-### 1. Автоматическая настройка (рекомендуется)
+### Автоматическая настройка (рекомендуется)
 
 Используйте готовый скрипт для автоматической настройки и запуска:
 
 ```bash
 # Создает venv, устанавливает зависимости и запускает утилиту
+export FPGA_TARGET_ARTIFACT=elab
 ./run_fpga_gen.sh --dry-run
 ```
 
-### 2. Ручная настройка
+### Ручная настройка
 
 Если нужно настроить окружение вручную:
 
@@ -23,42 +24,38 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Установка зависимостей
-pip install jinja2 pyyaml
+pip install pyyaml
 
 # Запуск утилиты
+export FPGA_TARGET_ARTIFACT=elab
 python fpga_gen.py --dry-run
 ```
 
 ## Доступные скрипты
 
-### `run_fpga_gen.sh` - Полная версия с Jinja2
+### `run_fpga_gen.sh` - Основной скрипт
 - Автоматически создает виртуальное окружение
-- Устанавливает Jinja2 и PyYAML
-- Использует шаблоны Jinja2 для генерации
-
-### `run_fpga_gen_fallback.sh` - Fallback версия
-- Автоматически создает виртуальное окружение
-- Устанавливает только PyYAML
-- Использует встроенную генерацию (рекомендуется для корректного YAML)
+- Устанавливает PyYAML
+- Использует встроенную генерацию с корректным YAML форматированием
 
 ## Примеры использования
 
 ### Базовое использование
 ```bash
 export FPGA_TARGET_ARTIFACT=elab
-./run_fpga_gen_fallback.sh --dry-run
+./run_fpga_gen.sh --dry-run
 ```
 
 ### С указанием выходного файла
 ```bash
 export FPGA_TARGET_ARTIFACT=elab,synth
-./run_fpga_gen_fallback.sh -o my_pipeline.yml
+./run_fpga_gen.sh -o my_pipeline.yml
 ```
 
 ### С подробным выводом
 ```bash
 export FPGA_TARGET_ARTIFACT=elab
-./run_fpga_gen_fallback.sh --dry-run --verbose
+./run_fpga_gen.sh --dry-run --verbose
 ```
 
 ## Переменные окружения
@@ -75,8 +72,8 @@ fpga_pipeline_generator/
 ├── config/
 │   └── default.yaml      # Конфигурация по умолчанию
 ├── templates/
-│   ├── pipeline.j2       # Шаблон пайплайна
-│   └── job.j2           # Шаблон задачи
+│   ├── pipeline.j2       # Шаблон пайплайна (не используется)
+│   └── job.j2           # Шаблон задачи (не используется)
 └── core/
     ├── generator.py      # Основная логика генерации
     └── parser.py         # Парсер конфигураций
@@ -107,14 +104,11 @@ sudo apt update
 sudo apt install python3-venv python3-pip
 ```
 
-### Проблема: "Jinja2 не установлен"
-Используйте fallback версию:
+### Проблема: "PyYAML не установлен"
 ```bash
-./run_fpga_gen_fallback.sh --dry-run
+source venv/bin/activate
+pip install pyyaml
 ```
 
 ### Проблема: Неправильное форматирование YAML
-Используйте fallback версию, которая генерирует корректный YAML:
-```bash
-./run_fpga_gen_fallback.sh --dry-run
-```
+Утилита теперь использует встроенную генерацию с корректным YAML форматированием.

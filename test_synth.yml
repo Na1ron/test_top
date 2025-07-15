@@ -1,0 +1,25 @@
+# Generated FPGA Pipeline
+stages:
+  - synth
+
+synth_lsio_au_synth_test_fpga:
+  stage: synth
+  tags: ["devops-synth"]
+  script:
+    - "echo synth VAR='FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev' OPTIONS='--optimize' TARGET='lsio_au_synth'"
+    - "echo 'Executing: make -f Makefile synth FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev --optimize'"
+    - "export FPGA_BOARD_TYPE=HTG960"
+    - "export FPGA_DEVICE=xczu7ev"
+    - "make -f Makefile synth FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev --optimize"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
+  variables:
+    FPGA_STAGE: "synth"
+    FPGA_TARGET: "lsio_au_synth"
+    FPGA_SUBMODULE: "test_fpga"
+    FPGA_WORKSPACE: "/workspace"
+    MAKEFILE_PATH: "Makefile"
+    FPGA_BOARD_TYPE: "HTG960"
+    FPGA_DEVICE: "xczu7ev"
+    FPGA_OPTIONS: "--optimize"
+
