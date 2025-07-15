@@ -140,6 +140,7 @@ class FPGAPipelineGenerator:
         makefile_path = job_context['makefile_path']
         vars_string = job_context.get('vars_string', '')
         options_string = job_context.get('options_string', '')
+        job_variables = job_context.get('job_variables', {})
         
         # Формируем echo команду с данными из cfg.yaml
         echo_parts = [stage]
@@ -150,18 +151,36 @@ class FPGAPipelineGenerator:
         echo_parts.append(f"TARGET='{target_name}'")
         echo_command = " ".join(echo_parts)
         
-        job_yaml = f"""
-{job_name}:
+        # Форматируем теги как YAML список
+        tags_yaml = "[" + ", ".join([f'"{tag}"' for tag in tags]) + "]"
+        
+        job_yaml = f"""{job_name}:
   stage: {stage}
-  tags: {tags}
+  tags: {tags_yaml}
   script:
     - "echo {echo_command}"
     - "echo 'Executing: make -f {makefile_path} {make_target} {make_args}'"
-    - "make -f {makefile_path} {make_target} {make_args}"
-  rules:
+"""
+        
+        # Добавляем export команды для переменных
+        target_vars = job_context.get('target_vars', {})
+        for var_name, var_value in target_vars.items():
+            job_yaml += f"    - \"export {var_name}={var_value}\"\n"
+        
+        job_yaml += f"    - \"make -f {makefile_path} {make_target} {make_args}\"\n"
+        
+        # Добавляем rules
+        job_yaml += """  rules:
     - if: "$CI_MERGE_REQUEST_ID"
 """
-        return job_yaml.strip()
+        
+        # Добавляем variables если есть
+        if job_variables:
+            job_yaml += "  variables:\n"
+            for var_name, var_value in job_variables.items():
+                job_yaml += f"    {var_name}: \"{var_value}\"\n"
+        
+        return job_yaml
     
     def generate_jobs(self, parsed_data: Dict[str, Dict[str, List[Dict[str, Any]]]], stages: List[str]) -> List[str]:
         """Генерирует все задачи."""

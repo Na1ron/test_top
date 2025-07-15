@@ -52,9 +52,11 @@ class ConfigParser:
         """Извлекает информацию о цели из конфигурации."""
         target_name = target_config.get('target', 'unknown')
         
-        # Парсим переменные
+        # Парсим переменные - поддерживаем как 'vars', так и 'variables'
         variables = {}
-        if 'vars' in target_config:
+        if 'variables' in target_config:
+            variables = target_config['variables']
+        elif 'vars' in target_config:
             for var in target_config['vars']:
                 if isinstance(var, str) and '=' in var:
                     key, value = var.split('=', 1)

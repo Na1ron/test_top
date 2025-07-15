@@ -11,7 +11,7 @@ stages:
 {%- if global_variables %}
 variables:
 {%- for var_name, var_value in global_variables.items() %}
-  {{ var_name }}: {{ var_value | tojson }}
+  {{ var_name }}: "{{ var_value }}"
 {%- endfor %}
 {%- endif %}
 
