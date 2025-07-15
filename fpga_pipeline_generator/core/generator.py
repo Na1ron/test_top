@@ -7,12 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
-try:
-    from jinja2 import Environment, FileSystemLoader, select_autoescape
-    JINJA2_AVAILABLE = True
-except ImportError:
-    JINJA2_AVAILABLE = False
-    print("Предупреждение: Jinja2 не установлен. Используется базовая генерация.")
+# Отключаем Jinja2 по умолчанию для корректного YAML форматирования
+JINJA2_AVAILABLE = False
 
 from .config_loader import ConfigLoader
 from .parser import ConfigParser
@@ -32,17 +28,8 @@ class FPGAPipelineGenerator:
         
         self.parser = ConfigParser(fpga_dir, config_filename)
         
-        # Настройка Jinja2
-        if JINJA2_AVAILABLE:
-            templates_dir = Path(__file__).parent.parent / "templates"
-            self.jinja_env = Environment(
-                loader=FileSystemLoader(str(templates_dir)),
-                autoescape=select_autoescape(['html', 'xml']),
-                trim_blocks=True,
-                lstrip_blocks=True
-            )
-        else:
-            self.jinja_env = None
+        # Отключаем Jinja2 для корректного YAML форматирования
+        self.jinja_env = None
     
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
