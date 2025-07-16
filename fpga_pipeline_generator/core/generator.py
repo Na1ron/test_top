@@ -161,11 +161,11 @@ class FPGAPipelineGenerator:
     - if: "$CI_MERGE_REQUEST_ID"
 """
         
-        # Добавляем variables если есть
-        if job_variables:
-            job_yaml += "  variables:\n"
-            for var_name, var_value in job_variables.items():
-                job_yaml += f"    {var_name}: \"{var_value}\"\n"
+        # Удаляем добавление блока variables
+        # if job_variables:
+        #     job_yaml += "  variables:\n"
+        #     for var_name, var_value in job_variables.items():
+        #         job_yaml += f"    {var_name}: \"{var_value}\"\n"
         
         return job_yaml
     

@@ -19,9 +19,3 @@
     - if: "{{ rule.if }}"
 {%- endfor %}
 {%- endif %}
-{%- if job_variables %}
-  variables:
-{%- for var_name, var_value in job_variables.items() %}
-    {{ var_name }}: "{{ var_value }}"
-{%- endfor %}
-{%- endif %}
