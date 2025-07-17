@@ -4,14 +4,6 @@
   script:
     - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
     - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
-{%- if target_vars %}
-{%- for var_name, var_value in target_vars.items() %}
-    - "export {{ var_name }}={{ var_value }}"
-{%- endfor %}
-{%- endif %}
-{%- if target_options %}
-    - "echo 'Options: {{ target_options }}'"
-{%- endif %}
     - "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
 {%- if rules %}
   rules:

@@ -1,0 +1,2 @@
+[console_scripts]
+fpga-pipeline-gen = fpga_pipeline_generator.main:main

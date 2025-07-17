@@ -3,15 +3,15 @@
 # Настройки стадий
 stages:
   elab:
-    tags: ["devops-elab"]
+    tags: ["soc-fpga-elab"]
     make_target: "elab"
     description: "FPGA Elaboration"
   synth:
-    tags: ["devops-synth"]
+    tags: ["soc-fpga-synth"]
     make_target: "synth"
     description: "FPGA Synthesis"
   bitstream:
-    tags: ["devops-synth"]
+    tags: ["soc-fpga-synth"]
     make_target: "bitstream"
     description: "FPGA Bitstream Generation"
 
