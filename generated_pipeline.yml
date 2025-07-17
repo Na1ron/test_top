@@ -1,7 +1,7 @@
-# Generated FPGA Pipeline
 stages:
   - synth
   - elab
+
 
 synth_lsio_au_test_fpga:
   stage: synth
@@ -32,4 +32,3 @@ elab_lsio_au_elab_test_fpga:
     - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960"
   rules:
     - if: "$CI_MERGE_REQUEST_ID"
-
