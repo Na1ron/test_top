@@ -4,9 +4,7 @@
 
 from datetime import datetime
 from typing import Dict, List, Any, Optional
-
-# Отключаем Jinja2 по умолчанию для корректного YAML форматирования
-JINJA2_AVAILABLE = False
+from jinja2 import Environment, FileSystemLoader
 
 from .config_loader import ConfigLoader
 from .parser import ConfigParser
@@ -26,8 +24,12 @@ class FPGAPipelineGenerator:
 
         self.parser = ConfigParser(fpga_dir, config_filename)
 
-        # Отключаем Jinja2 для корректного YAML форматирования
-        self.jinja_env = None
+        # Инициализация Jinja2 для шаблонов
+        self.jinja_env = Environment(
+            loader=FileSystemLoader("fpga_pipeline_generator/templates"),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
 
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
@@ -106,66 +108,12 @@ class FPGAPipelineGenerator:
 
     def render_job_with_template(self, job_context: Dict[str, Any]) -> str:
         """Рендерит задачу используя Jinja2 шаблон."""
-        # if not self.jinja_env:
-        #     return self._render_job_fallback(job_context)
-
         try:
             template = self.jinja_env.get_template("job.j2")
             return template.render(**job_context)
         except Exception as e:
             print(f"Ошибка рендеринга шаблона задачи: {e}")
-            return self._render_job_fallback(job_context)
-
-    def _render_job_fallback(self, job_context: Dict[str, Any]) -> str:
-        """Запасной способ генерации задачи без Jinja2."""
-        job_name = job_context["job_name"]
-        stage = job_context["stage"]
-        target_name = job_context["target_name"]
-        tags = job_context["tags"]
-        make_target = job_context["make_target"]
-        make_args = job_context["make_args"]
-        makefile_path = job_context["makefile_path"]
-        vars_string = job_context.get("vars_string", "")
-        options_string = job_context.get("options_string", "")
-        job_variables = job_context.get("job_variables", {})
-
-        # Формируем echo команду с данными из cfg.yaml
-        echo_parts = [stage]
-        if vars_string:
-            echo_parts.append(f"VAR='{vars_string}'")
-        if options_string:
-            echo_parts.append(f"OPTIONS='{options_string}'")
-        echo_parts.append(f"TARGET='{target_name}'")
-        echo_command = " ".join(echo_parts)
-
-        # Форматируем теги как YAML список
-        tags_yaml = "[" + ", ".join([f'"{tag}"' for tag in tags]) + "]"
-
-        job_yaml = f"""{job_name}:
-  stage: {stage}
-  tags: {tags_yaml}
-  script:
-    - "echo {echo_command}"
-    - "echo 'Executing: make -f {makefile_path} {make_target} {make_args}'"
-"""
-
-        # Добавляем export команды для переменных
-        target_vars = job_context.get("target_vars", {})
-
-        job_yaml += f'    - "make -f {makefile_path} {make_target} {make_args}"\n'
-
-        # Добавляем rules
-        job_yaml += """  rules:
-    - if: "$CI_MERGE_REQUEST_ID"
-"""
-
-        # Удаляем добавление блока variables
-        # if job_variables:
-        #     job_yaml += "  variables:\n"
-        #     for var_name, var_value in job_variables.items():
-        #         job_yaml += f"    {var_name}: \"{var_value}\"\n"
-
-        return job_yaml
+            raise
 
     def generate_jobs(
         self, parsed_data: Dict[str, Dict[str, List[Dict[str, Any]]]], stages: List[str]
@@ -207,28 +155,12 @@ class FPGAPipelineGenerator:
 
     def render_pipeline_with_template(self, pipeline_context: Dict[str, Any]) -> str:
         """Рендерит пайплайн используя Jinja2 шаблон."""
-        if not self.jinja_env:
-            return self._render_pipeline_fallback(pipeline_context)
-
         try:
             template = self.jinja_env.get_template("pipeline.j2")
             return template.render(**pipeline_context)
         except Exception as e:
             print(f"Ошибка рендеринга шаблона пайплайна: {e}")
-            return self._render_pipeline_fallback(pipeline_context)
-
-    def _render_pipeline_fallback(self, pipeline_context: Dict[str, Any]) -> str:
-        """Запасной способ генерации пайплайна без Jinja2."""
-        stages = pipeline_context["stages"]
-        jobs = pipeline_context["jobs"]
-
-        pipeline_yaml = f"""# Generated FPGA Pipeline
-stages:
-{chr(10).join([f"  - {stage}" for stage in stages])}
-
-{chr(10).join(jobs)}
-"""
-        return pipeline_yaml
+            raise
 
     def generate_pipeline(self) -> Optional[str]:
         """Генерирует полный пайплайн."""
