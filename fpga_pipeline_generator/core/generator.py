@@ -11,6 +11,7 @@ JINJA2_AVAILABLE = False
 from .config_loader import ConfigLoader
 from .parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
+import os
 
 
 class FPGAPipelineGenerator:
@@ -26,9 +27,10 @@ class FPGAPipelineGenerator:
         config_filename = file_search_config.get("config_filename", "cfg.yaml")
 
         self.parser = ConfigParser(fpga_dir, config_filename)
-        # Инициализация Jinja2
+        # Инициализация Jinja2 с абсолютным путем к шаблонам
+        template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
         self.jinja_env = Environment(
-            loader=FileSystemLoader("fpga_pipeline_generator/templates"),
+            loader=FileSystemLoader(template_dir),
             trim_blocks=True,
             lstrip_blocks=True,
         )
