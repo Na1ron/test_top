@@ -1,0 +1,78 @@
+spec:
+  inputs:
+    tag_runner_ci:
+      default: "dynamic"
+      description: "Тег раннера на котором запустятся задания"      
+    ci_repo_type:
+      default: "test"
+      description: "Переменная для опеределения типа репозитория"
+---
+generate-dynamic-targets:
+  variables:
+    CI_REPO_TYPE: $[[ inputs.ci_repo_type ]]
+  allow_failure: true
+  rules: 
+    - if: '$CI_REPO_TYPE == "hlbip" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      variables: 
+        FPGA_TARGET_ARTIFACT: "elab"
+    - if: '$CI_REPO_TYPE == "hlbip" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      variables:
+        FPGA_TARGET_ARTIFACT: "synth,bitstream"
+    - if: '$CI_REPO_TYPE == "topau" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      variables:
+        FPGA_TARGET_ARTIFACT: "bitstream"    
+  before_script:
+    - git fetch --tags
+    - 'exists=`git show-ref refs/heads/master` && if [ -n "$exists" ]; then git branch -D master; fi'
+    - git checkout master
+    - git rev-parse HEAD
+    - git pull
+    - git tag
+    - git submodule update --init --recursive
+  stage: dynamic
+  tags:
+    - $[[ inputs.tag_runner_ci ]]
+  script:
+    - |
+    - export no_proxy="b.yadro.com,g-ymp.yadro.com,gitlab.dev.syntacore.com"
+    - git clone git@g-ymp.yadro.com:ysemi-soc/devops/ci-components/dynamic/fpga_generator.git
+    - pushd fpga_generator
+    - git fetch; git checkout master; git pull
+    - rm -rf ./venv ./.cache
+    - python3.11 -m venv venv
+    - source venv/bin/activate || python3.11 -m venv venv && source venv/bin/activate
+    - python -V
+    - export http_proxy="${PYPI_HTTP_PROXY}"
+    - export https_proxy="${PYPI_HTTPS_PROXY}"
+    - pip install wheel
+    - pip install -e .
+    - unset http_proxy https_proxy no_proxy
+    - popd
+    - pwd
+    - fpga-pipeline-gen --verbose
+  artifacts:
+    paths:
+      - generated_pipeline.yml
+
+dynamic-child-pipeline:
+  stage: dynamic
+  allow_failure: true
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+    CI_REPO_TYPE: $[[ inputs.ci_repo_type ]]
+  rules: 
+    - if: '$CI_REPO_TYPE == "hlbip" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      variables: 
+        FPGA_TARGET_ARTIFACT: "elab"
+    - if: '$CI_REPO_TYPE == "hlbip" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      variables:
+        FPGA_TARGET_ARTIFACT: "synth,bitstream"
+    - if: '$CI_REPO_TYPE == "topau" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      variables:
+        FPGA_TARGET_ARTIFACT: "bitstream"
+  needs: 
+    - job: generate-dynamic-targets
+  trigger:
+    include:
+      - artifact: generated_pipeline.yml
+        job: generate-dynamic-targets
