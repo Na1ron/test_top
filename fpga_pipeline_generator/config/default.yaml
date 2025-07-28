@@ -17,7 +17,7 @@ stages:
 
 # Правила выполнения задач
 default_rules:
-  - if: "$CI_MERGE_REQUEST_ID"
+  - when: always
 
 # Переменные по умолчанию
 default_variables:
