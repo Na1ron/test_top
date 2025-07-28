@@ -8,6 +8,10 @@
 {% if rules %}
   rules:
 {% for rule in rules %}
+    {%- if rule.if is defined %}
     - if: "{{ rule.if }}"
+    {%- elif rule.when is defined %}
+    - when: "{{ rule.when }}"
+    {%- endif %}
 {%- endfor %}
 {%- endif %}
