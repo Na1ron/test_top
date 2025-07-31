@@ -94,6 +94,16 @@ class FPGAPipelineGenerator:
         if target_options:
             options_string = " ".join(target_options)
 
+        # Формируем CLI-строку для переменных
+        variables_cli = ""
+        if target_vars:
+            variables_cli = " ".join([f"--var {k}={v}" for k, v in target_vars.items()])
+
+        # Формируем CLI-строку для опций
+        options_cli = ""
+        if target_options:
+            options_cli = " ".join(target_options)
+
         return {
             "job_name": self.generate_job_name(stage, target_name, submodule),
             "stage": stage,
@@ -106,6 +116,8 @@ class FPGAPipelineGenerator:
             "target_options": " ".join(target_options) if target_options else None,
             "vars_string": vars_string if vars_string else None,
             "options_string": options_string if options_string else None,
+            "variables_cli": variables_cli if variables_cli else None,
+            "options_cli": options_cli if options_cli else None,
             "rules": default_rules,
             "job_variables": job_variables,
         }
