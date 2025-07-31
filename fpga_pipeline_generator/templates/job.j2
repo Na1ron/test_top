@@ -4,10 +4,22 @@
   script:
     - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
     - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
+<<<<<<< HEAD
     - "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
 {% if rules %}
   rules:
 {% for rule in rules %}
     - if: "{{ rule.if }}"
+=======
+    #- "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
+{% if rules %}
+  rules:
+{% for rule in rules %}
+    {%- if rule.if is defined %}
+    - if: "{{ rule.if }}"
+    {%- elif rule.when is defined %}
+    - when: "{{ rule.when }}"
+    {%- endif %}
+>>>>>>> YSDTSRE-710
 {%- endfor %}
 {%- endif %}

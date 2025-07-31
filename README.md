@@ -2,6 +2,7 @@
 
 Генератор динамических CI/CD пайплайнов для FPGA проектов на основе конфигурационных файлов.
 
+<<<<<<< HEAD
 ## 🚀 Быстрый старт
 
 ### Автоматическая настройка (рекомендуется)
@@ -10,6 +11,43 @@
 # Создает виртуальное окружение и запускает утилиту
 export FPGA_TARGET_ARTIFACT=elab
 ./run_fpga_gen.sh --dry-run
+=======
+### Доступные опции утилиты :
+
+```bash
+fpga-pipeline-gen --help
+usage: fpga-pipeline-gen [-h] [-o OUTPUT] [-c CONFIG] [--stages STAGES] [--fpga-dir FPGA_DIR] [--dry-run] [--verbose] [--version]
+
+FPGA Pipeline Generator - генерирует динамические CI/CD пайплайны для FPGA проектов
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Путь к выходному файлу (по умолчанию: generated_pipeline.yml)
+  -c CONFIG, --config CONFIG
+                        Путь к пользовательскому файлу конфигурации
+  --stages STAGES       Список стадий через запятую (переопределяет FPGA_TARGET_ARTIFACT)
+  --fpga-dir FPGA_DIR   Директория с FPGA сабмодулями (по умолчанию: fpga)
+  --dry-run             Не сохранять файл, только вывести результат
+  --verbose             Подробный вывод
+  --version             show program's version number and exit
+
+Примеры использования:
+  # Базовое использование (с переменной окружения FPGA_TARGET_ARTIFACT)
+  python -m fpga_pipeline_generator
+
+  # Указание выходного файла
+  python -m fpga_pipeline_generator -o my_pipeline.yml
+
+  # Использование пользовательской конфигурации
+  python -m fpga_pipeline_generator -c custom_config.yaml
+
+  # Установка целевых артефактов через аргумент
+  python -m fpga_pipeline_generator --stages elab,synth
+
+Переменные окружения:
+  FPGA_TARGET_ARTIFACT - список стадий через запятую (elab,synth,bitstream)
+>>>>>>> YSDTSRE-710
 ```
 
 ### Ручная настройка
@@ -20,6 +58,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Установка зависимостей
+<<<<<<< HEAD
 pip install pyyaml
 
 # Запуск утилиты
@@ -46,12 +85,20 @@ export FPGA_TARGET_ARTIFACT=elab,synth
 
 # Подробный вывод
 ./run_fpga_gen.sh --dry-run --verbose
+=======
+pip install -e .
+
+# Запуск утилиты
+export FPGA_TARGET_ARTIFACT=elab (задание тестовой переменной окружения)
+fpga-pipeline-gen --dry-run
+>>>>>>> YSDTSRE-710
 ```
 
 ### Переменные окружения
 
 - `FPGA_TARGET_ARTIFACT` - список стадий через запятую (elab,synth,bitstream)
 
+<<<<<<< HEAD
 ## 📁 Структура проекта
 
 ```
@@ -72,6 +119,12 @@ fpga_pipeline_generator/
 ## 📝 Формат конфигурации
 
 ### cfg.yaml (в сабмодулях)
+=======
+
+## 📝 Формат конфигурации
+
+### cfg.yaml (в сабмодулях) Используется только FPGA_TARGET_ARTIFACT=elab
+>>>>>>> YSDTSRE-710
 
 ```yaml
 elab:
@@ -88,13 +141,20 @@ synth:
     options: ["--optimize"]
 ```
 
+<<<<<<< HEAD
 ### Генерируемый YAML
+=======
+### Пример сгенерированного YAML с переменной окружения FPGA_TARGET_ARTIFACT=elab
+>>>>>>> YSDTSRE-710
 
 ```yaml
 # Generated FPGA Pipeline
 stages:
   - elab
+<<<<<<< HEAD
   - synth
+=======
+>>>>>>> YSDTSRE-710
 
 elab_lsio_au_elab_test_fpga:
   stage: elab
@@ -102,6 +162,7 @@ elab_lsio_au_elab_test_fpga:
   script:
     - "echo elab VAR='FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev' TARGET='lsio_au_elab'"
     - "echo 'Executing: make -f Makefile elab FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev'"
+<<<<<<< HEAD
     - "export FPGA_BOARD_TYPE=HTG960"
     - "export FPGA_DEVICE=xczu7ev"
     - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev"
@@ -147,3 +208,12 @@ pip install pyyaml
 - ✅ Улучшена встроенная генерация
 - ✅ Добавлена поддержка опций в конфигурации
 - ✅ Отключен Jinja2 для стабильной работы
+=======
+    - "make -f Makefile elab FPGA_BOARD_TYPE=HTG960 FPGA_DEVICE=xczu7ev"
+  rules:
+    - if: "$CI_MERGE_REQUEST_ID"
+```
+
+
+
+>>>>>>> YSDTSRE-710

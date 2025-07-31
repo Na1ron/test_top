@@ -17,7 +17,11 @@ stages:
 
 # Правила выполнения задач
 default_rules:
+<<<<<<< HEAD
   - if: "$CI_MERGE_REQUEST_ID"
+=======
+  - when: always
+>>>>>>> YSDTSRE-710
 
 # Переменные по умолчанию
 default_variables:

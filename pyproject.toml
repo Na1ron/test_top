@@ -47,12 +47,15 @@ docs = [
     "mkdocs-material>=8.0",
 ]
 
+<<<<<<< HEAD
 [project.urls]
 Homepage = "https://github.com/your-org/fpga-pipeline-generator"
 Documentation = "https://github.com/your-org/fpga-pipeline-generator#readme"
 Repository = "https://github.com/your-org/fpga-pipeline-generator.git"
 "Bug Reports" = "https://github.com/your-org/fpga-pipeline-generator/issues"
 
+=======
+>>>>>>> YSDTSRE-710
 [project.scripts]
 fpga-pipeline-gen = "fpga_pipeline_generator.main:main"
 
