@@ -61,7 +61,7 @@ class FPGAPipelineGenerator:
         target_vars = target_config["variables"]
         target_options = target_config["options"]
 
-        # Формируем аргументы для make
+        # Формируем аргументы для make (старый вариант)
         make_args = ""
         if target_vars:
             for var_name, var_value in target_vars.items():
@@ -94,6 +94,14 @@ class FPGAPipelineGenerator:
         if target_options:
             options_string = " ".join(target_options)
 
+        # Новый формат для make: VARIABLES='FOO=BAR,BAZ=FOO' OPTIONS='--opt1 --opt2'
+        variables_string = ""
+        if target_vars:
+            variables_string = ",".join(f"{k}={v}" for k, v in target_vars.items())
+        options_string_for_make = ""
+        if target_options:
+            options_string_for_make = " ".join(target_options)
+
         return {
             "job_name": self.generate_job_name(stage, target_name, submodule),
             "stage": stage,
@@ -106,6 +114,8 @@ class FPGAPipelineGenerator:
             "target_options": " ".join(target_options) if target_options else None,
             "vars_string": vars_string if vars_string else None,
             "options_string": options_string if options_string else None,
+            "variables_string": variables_string if variables_string else None,
+            "options_string_for_make": options_string_for_make if options_string_for_make else None,
             "rules": default_rules,
             "job_variables": job_variables,
         }

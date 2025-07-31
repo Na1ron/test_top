@@ -3,23 +3,15 @@
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
     - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
-    - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
-<<<<<<< HEAD
-    - "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
+    - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }}{{' VARIABLES=\'' ~ variables_string ~ '\'' if variables_string }}{{' OPTIONS=\'' ~ options_string_for_make ~ '\'' if options_string_for_make }} TARGET=\'{{ target_name }}\' '""
+    - "make -f {{ makefile_path }} {{ make_target }}{% if variables_string %} VARIABLES='{{ variables_string }}'{% endif %}{% if options_string_for_make %} OPTIONS='{{ options_string_for_make }}'{% endif %} TARGET='{{ target_name }}'"
 {% if rules %}
   rules:
 {% for rule in rules %}
+  {%- if rule.if is defined %}
     - if: "{{ rule.if }}"
-=======
-    #- "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
-{% if rules %}
-  rules:
-{% for rule in rules %}
-    {%- if rule.if is defined %}
-    - if: "{{ rule.if }}"
-    {%- elif rule.when is defined %}
+  {%- elif rule.when is defined %}
     - when: "{{ rule.when }}"
-    {%- endif %}
->>>>>>> YSDTSRE-710
+  {%- endif %}
 {%- endfor %}
 {%- endif %}
