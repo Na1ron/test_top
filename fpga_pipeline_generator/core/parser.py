@@ -51,20 +51,30 @@ class ConfigParser:
     def extract_target_info(self, target_config: Dict[str, Any]) -> Tuple[str, Dict[str, str], List[str]]:
         """Извлекает информацию о цели из конфигурации."""
         target_name = target_config.get('target', 'unknown')
-        
+
         # Парсим переменные - поддерживаем как 'vars', так и 'variables'
         variables = {}
+        # Новый универсальный парсер
         if 'variables' in target_config:
-            variables = target_config['variables']
+            raw_vars = target_config['variables']
+            if isinstance(raw_vars, dict):
+                variables = raw_vars
+            elif isinstance(raw_vars, list):
+                # Преобразуем список вида ['KEY=VALUE'] в словарь
+                for var in raw_vars:
+                    if isinstance(var, str) and '=' in var:
+                        key, value = var.split('=', 1)
+                        variables[key.strip()] = value.strip()
+            # Если это что-то другое, игнорируем
         elif 'vars' in target_config:
             for var in target_config['vars']:
                 if isinstance(var, str) and '=' in var:
                     key, value = var.split('=', 1)
                     variables[key.strip()] = value.strip()
-        
+
         # Извлекаем опции
         options = target_config.get('options', [])
-        
+
         return target_name, variables, options
     
     def get_targets_for_stage(self, cfg_data: Dict[str, Any], stage: str) -> List[Dict[str, Any]]:
