@@ -34,6 +34,10 @@ class FPGAPipelineGenerator:
             trim_blocks=True,
             lstrip_blocks=True,
         )
+        
+        # Добавляем пользовательские фильтры для работы с путями
+        self.jinja_env.filters['dirname'] = lambda path: os.path.dirname(path)
+        self.jinja_env.filters['basename'] = lambda path: os.path.basename(path)
 
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
@@ -50,7 +54,7 @@ class FPGAPipelineGenerator:
         return f"{stage}_{target}_{submodule}"
 
     def prepare_job_context(
-        self, stage: str, target_config: Dict[str, Any], submodule: str
+        self, stage: str, target_config: Dict[str, Any], submodule: str, submodule_path: str
     ) -> Dict[str, Any]:
         """Подготавливает контекст для генерации задачи."""
         stage_config = self.config_loader.get_stage_config(stage, self.config)
@@ -104,6 +108,9 @@ class FPGAPipelineGenerator:
         if target_options:
             options_cli = " ".join(target_options)
 
+        # Формируем путь к Makefile относительно сабмодуля
+        makefile_path = os.path.join(submodule_path, default_vars.get("MAKEFILE_PATH", "Makefile"))
+
         return {
             "job_name": self.generate_job_name(stage, target_name, submodule),
             "stage": stage,
@@ -111,7 +118,7 @@ class FPGAPipelineGenerator:
             "tags": stage_config.get("tags", [f"fpga-{stage}"]),
             "make_target": stage_config.get("make_target", stage),
             "make_args": make_args.strip(),
-            "makefile_path": default_vars.get("MAKEFILE_PATH", "Makefile"),
+            "makefile_path": makefile_path,
             "target_vars": target_vars,
             "target_options": " ".join(target_options) if target_options else None,
             "vars_string": vars_string if vars_string else None,
@@ -134,13 +141,16 @@ class FPGAPipelineGenerator:
         jobs = []
 
         for submodule_name, submodule_data in parsed_data.items():
+            # Получаем путь к сабмодулю
+            submodule_path = submodule_data.get('submodule_path', '')
+            
             for stage in stages:
                 if stage in submodule_data:
                     targets = submodule_data[stage]
 
                     for target_config in targets:
                         job_context = self.prepare_job_context(
-                            stage, target_config, submodule_name
+                            stage, target_config, submodule_name, submodule_path
                         )
                         job_yaml = self.render_job_with_template(job_context)
                         jobs.append(job_yaml)

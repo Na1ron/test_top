@@ -4,7 +4,8 @@
   script:
     - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
     - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
-    - "make -f {{ makefile_path }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    - "cd {{ makefile_path | dirname }}"
+    - "make -f {{ makefile_path | basename }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
 {% if rules %}
   rules:
 {% for rule in rules %}
