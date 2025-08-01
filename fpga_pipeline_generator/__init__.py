@@ -5,7 +5,7 @@ FPGA Pipeline Generator
 на основе конфигурационных файлов cfg.yaml из сабмодулей FPGA.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "FPGA Pipeline Generator Team"
 
 from .core.generator import FPGAPipelineGenerator

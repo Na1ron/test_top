@@ -92,7 +92,8 @@ class ConfigParser:
         Парсит все сабмодули и возвращает структуру:
         {
             'submodule_name': {
-                'stage_name': [target_configs...]
+                'stage_name': [target_configs...],
+                'submodule_path': 'path/to/submodule'
             }
         }
         """
@@ -132,6 +133,8 @@ class ConfigParser:
                     submodule_targets[stage] = enriched_targets
             
             if submodule_targets:
+                # Добавляем путь к сабмодулю
+                submodule_targets['submodule_path'] = submodule_path
                 result[submodule_name] = submodule_targets
                 print(f"Обработан сабмодуль: {submodule_name}")
         
