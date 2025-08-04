@@ -6,6 +6,7 @@ import os
 import yaml
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
+import glob
 
 
 class ConfigParser:
@@ -16,17 +17,17 @@ class ConfigParser:
         self.config_filename = config_filename
 
     def find_submodules(self) -> List[str]:
-        """Находит все сабмодули в папке fpga."""
-        if not os.path.exists(self.fpga_dir):
-            print(f"Папка {self.fpga_dir} не найдена")
-            return []
-
+        """Находит все сабмодули по шаблону fpga*/random-submodule."""
+        # Поддержка поиска по маске fpga*/random-submodule
         submodules = []
-        for item in os.listdir(self.fpga_dir):
-            submodule_path = os.path.join(self.fpga_dir, item)
-            if os.path.isdir(submodule_path):
-                submodules.append(submodule_path)
-
+        # Ищем все директории, соответствующие шаблону fpga*/<submodule>
+        for fpga_dir in glob.glob("fpga*"):
+            if not os.path.isdir(fpga_dir):
+                continue
+            for item in os.listdir(fpga_dir):
+                submodule_path = os.path.join(fpga_dir, item)
+                if os.path.isdir(submodule_path):
+                    submodules.append(submodule_path)
         return submodules
 
     def find_cfg_yaml(self, submodule_path: str) -> Optional[str]:
