@@ -1,0 +1,6 @@
+elab:
+  - target: lsio_au_elab
+synth:
+  - target: lsio_au
+    variables: [FPGA_BOARD_TYPE=HTG960]
+    options: [--vivado-ver=2021.1]

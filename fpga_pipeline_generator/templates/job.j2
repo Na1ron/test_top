@@ -14,9 +14,9 @@
     - "cd {{ makefile_path | dirname }}"
     - "make -f {{ makefile_path | basename }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
     {% if stage == 'bitstream' %}
-    - "make -f Makefile deliver-bitstream{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}"
+    - "make -f Makefile deliver-bitstream{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %}"
     {% elif stage == 'synth' %}
-    - "make -f Makefile deliver-synth{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}"
+    - "make -f Makefile deliver-synth{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %}"
     {% endif %}
 {% if rules %}
   rules:
@@ -25,13 +25,13 @@
     - if: "{{ rule.if }}"
     {%- elif rule.when is defined %}
     - when: "{{ rule.when }}"
-    {%- endif %}
-    artifacts:
+    {%- endif %}  
+  artifacts:
     paths:
-        - {{submodule_path}}/bsv2/**/*.rpt
-        - {{submodule_path}}/bsv2/**/*_invalid.xdc
-        - {{submodule_path}}/bsv2/**/vivado.tcl
-        - {{submodule_path}}/bsv2/**/vivado.log
-        - {{submodule_path}}/bsv2/bs.log  
+        - {{ makefile_path | dirname }}/bsv2/**/*.rpt
+        - {{ makefile_path | dirname }}/bsv2/**/*_invalid.xdc
+        - {{ makefile_path | dirname }}/bsv2/**/vivado.tcl
+        - {{ makefile_path | dirname }}/bsv2/**/vivado.log
+        - {{ makefile_path | dirname }}/bsv2/bs.log  
 {%- endfor %}
 {%- endif %}
