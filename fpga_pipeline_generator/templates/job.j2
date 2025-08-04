@@ -1,10 +1,18 @@
 {{ job_name }}:
   stage: {{ stage }}
+  variables:
+    UV_INDEX_URL: "https://artifactory-eda.ysemi.yadro.com/artifactory/api/pypi/soc-devops-pypi/simple"
+    UV_NATIVE_TLS: "true"
+    UV_PYTHON: "python3.11"
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: none
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
-    - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
-    - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
-    - "make -f {{ makefile_path }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    - module load AGE
+    - "echo {{ makefile_path }} {{ makefile_path | dirname }}"
+    - "echo Executing: make -f {{ makefile_path | basename}} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    - "cd {{ makefile_path | dirname }}"
+    - "make -f {{ makefile_path | basename }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
 {% if rules %}
   rules:
 {% for rule in rules %}
@@ -13,5 +21,12 @@
     {%- elif rule.when is defined %}
     - when: "{{ rule.when }}"
     {%- endif %}
+    artifacts:
+    paths:
+        - {{submodule_path}}/bsv2/**/*.rpt
+        - {{submodule_path}}/bsv2/**/*_invalid.xdc
+        - {{submodule_path}}/bsv2/**/vivado.tcl
+        - {{submodule_path}}/bsv2/**/vivado.log
+        - {{submodule_path}}/bsv2/bs.log  
 {%- endfor %}
 {%- endif %}
