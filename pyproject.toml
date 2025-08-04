@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "fpga-pipeline-generator"
 version = "1.0.0"
 authors = [
-    {name = "Vladimir Kozlov", email = "vl.kozlov"},
+    {name = "Vladimir Kozlov", email = "vl.kozlov@yadro.com"},
 ]
 description = "Генератор динамических CI/CD пайплайнов для FPGA проектов"
 readme = "FPGA_PIPELINE_README.md"
