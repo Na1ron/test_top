@@ -5,9 +5,6 @@
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
-# Отключаем Jinja2 по умолчанию для корректного YAML форматирования
-JINJA2_AVAILABLE = False
-
 from .config_loader import ConfigLoader
 from .parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
