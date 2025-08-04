@@ -13,6 +13,11 @@
     - "echo Executing: make -f {{ makefile_path | basename}} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
     - "cd {{ makefile_path | dirname }}"
     - "make -f {{ makefile_path | basename }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    {% if stage == 'bitstream' %}
+    - "make -f Makefile deliver-bitstream{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}"
+    {% elif stage == 'synth' %}
+    - "make -f Makefile deliver-synth{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}"
+    {% endif %}
 {% if rules %}
   rules:
 {% for rule in rules %}
