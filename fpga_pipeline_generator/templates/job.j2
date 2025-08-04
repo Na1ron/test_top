@@ -1,10 +1,23 @@
 {{ job_name }}:
   stage: {{ stage }}
+  variables:
+    UV_INDEX_URL: "https://artifactory-eda.ysemi.yadro.com/artifactory/api/pypi/soc-devops-pypi/simple"
+    UV_NATIVE_TLS: "true"
+    UV_PYTHON: "python3.11"
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: none
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
-    - "echo {{ stage }}{% if vars_string %} VAR='{{ vars_string }}'{% endif %}{% if options_string %} OPTIONS='{{ options_string }}'{% endif %} TARGET='{{ target_name }}'"
-    - "echo 'Executing: make -f {{ makefile_path }} {{ make_target }} {{ make_args }}'"
-    #- "make -f {{ makefile_path }} {{ make_target }} {{ make_args }}"
+    - module load AGE
+    - "echo {{ makefile_path }} {{ makefile_path | dirname }}"
+    - "echo Executing: make -f {{ makefile_path | basename}} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    - "cd {{ makefile_path | dirname }}"
+    - "make -f {{ makefile_path | basename }} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
+    {% if stage == 'bitstream' %}
+    - "make -f Makefile deliver-bitstream{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %}"
+    {% elif stage == 'synth' %}
+    - "make -f Makefile deliver-synth{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %}"
+    {% endif %}
 {% if rules %}
   rules:
 {% for rule in rules %}
@@ -12,6 +25,13 @@
     - if: "{{ rule.if }}"
     {%- elif rule.when is defined %}
     - when: "{{ rule.when }}"
-    {%- endif %}
+    {%- endif %}  
+  artifacts:
+    paths:
+        - {{ makefile_path | dirname }}/bsv2/**/*.rpt
+        - {{ makefile_path | dirname }}/bsv2/**/*_invalid.xdc
+        - {{ makefile_path | dirname }}/bsv2/**/vivado.tcl
+        - {{ makefile_path | dirname }}/bsv2/**/vivado.log
+        - {{ makefile_path | dirname }}/bsv2/bs.log  
 {%- endfor %}
 {%- endif %}

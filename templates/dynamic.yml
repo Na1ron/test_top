@@ -13,12 +13,24 @@ generate-dynamic-targets:
   allow_failure: true
   rules: 
     - if: '$CI_REPO_TYPE == "hlbip" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
       variables: 
         FPGA_TARGET_ARTIFACT: "elab"
     - if: '$CI_REPO_TYPE == "hlbip" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
       variables:
         FPGA_TARGET_ARTIFACT: "synth,bitstream"
     - if: '$CI_REPO_TYPE == "topau" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
       variables:
         FPGA_TARGET_ARTIFACT: "bitstream"    
   before_script:
@@ -28,7 +40,7 @@ generate-dynamic-targets:
     - git rev-parse HEAD
     - git pull
     - git tag
-    - git submodule update --init --recursive
+    - git submodule update --init --recursive fpga/
   stage: dynamic
   tags:
     - $[[ inputs.tag_runner_ci ]]
@@ -62,14 +74,20 @@ dynamic-child-pipeline:
     CI_REPO_TYPE: $[[ inputs.ci_repo_type ]]
   rules: 
     - if: '$CI_REPO_TYPE == "hlbip" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
-      variables: 
-        FPGA_TARGET_ARTIFACT: "elab"
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
     - if: '$CI_REPO_TYPE == "hlbip" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
-      variables:
-        FPGA_TARGET_ARTIFACT: "synth,bitstream"
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
     - if: '$CI_REPO_TYPE == "topau" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
-      variables:
-        FPGA_TARGET_ARTIFACT: "bitstream"
+      changes:
+        - au/**/*
+        - fpga/**/*
+        - rtl/**/*
   needs: 
     - job: generate-dynamic-targets
   trigger:
