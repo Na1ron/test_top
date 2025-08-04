@@ -18,21 +18,21 @@ generate-dynamic-targets:
         - fpga/**/*
         - rtl/**/*
       variables: 
-        FPGA_TARGET_ARTIFACT: "elab"
+        FPGA_TARGET_STAGES: "elab"
     - if: '$CI_REPO_TYPE == "hlbip" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
       changes:
         - au/**/*
         - fpga/**/*
         - rtl/**/*
       variables:
-        FPGA_TARGET_ARTIFACT: "synth,bitstream"
+        FPGA_TARGET_STAGES: "synth,bitstream"
     - if: '$CI_REPO_TYPE == "topau" && $CI_COMMIT_BRANCH == $CI_AU_V2_SEMVER_BUMP_BRANCH'
       changes:
         - au/**/*
         - fpga/**/*
         - rtl/**/*
       variables:
-        FPGA_TARGET_ARTIFACT: "bitstream"    
+        FPGA_TARGET_STAGES: "bitstream"    
   before_script:
     - git fetch --tags
     - 'exists=`git show-ref refs/heads/master` && if [ -n "$exists" ]; then git branch -D master; fi'

@@ -45,7 +45,7 @@ class FPGAPipelineGenerator:
         """Получает целевые стадии из переменной окружения."""
         stages = self.parser.get_environment_artifacts()
         if not stages:
-            print("Переменная окружения FPGA_TARGET_ARTIFACT не установлена")
+            print("Переменная окружения FPGA_TARGET_STAGES не установлена")
             return []
 
         supported_stages = self.config_loader.get_supported_stages(self.config)
@@ -53,7 +53,7 @@ class FPGAPipelineGenerator:
 
     def generate_job_name(self, stage: str, target: str, submodule: str) -> str:
         """Генерирует имя задачи."""
-        return f"{stage}_{target}_{submodule}"
+        return f"{stage}/{target}/{submodule}"
 
     def prepare_job_context(
         self,
@@ -171,7 +171,7 @@ class FPGAPipelineGenerator:
         from .. import __version__
 
         global_variables = self.config.get("default_variables", {}).copy()
-        global_variables["FPGA_TARGET_ARTIFACT"] = ",".join(stages)
+        global_variables["FPGA_TARGET_STAGES"] = ",".join(stages)
 
         return {
             "generator_version": __version__,
@@ -192,8 +192,8 @@ class FPGAPipelineGenerator:
         # Получаем целевые стадии
         stages = self.get_target_stages()
         if not stages:
-            print("Установите переменную окружения FPGA_TARGET_ARTIFACT")
-            print("Например: export FPGA_TARGET_ARTIFACT=synth,elab")
+            print("Установите переменную окружения FPGA_TARGET_STAGES")
+            print("Например: export FPGA_TARGET_STAGES=synth,elab")
             return None
 
         print(f"Целевые артефакты: {stages}")

@@ -16,14 +16,14 @@ options:
                         Путь к выходному файлу (по умолчанию: generated_pipeline.yml)
   -c CONFIG, --config CONFIG
                         Путь к пользовательскому файлу конфигурации
-  --stages STAGES       Список стадий через запятую (переопределяет FPGA_TARGET_ARTIFACT)
+  --stages STAGES       Список стадий через запятую (переопределяет FPGA_TARGET_STAGES)
   --fpga-dir FPGA_DIR   Директория с FPGA сабмодулями (по умолчанию: fpga)
   --dry-run             Не сохранять файл, только вывести результат
   --verbose             Подробный вывод
   --version             show program's version number and exit
 
 Примеры использования:
-  # Базовое использование (с переменной окружения FPGA_TARGET_ARTIFACT)
+  # Базовое использование (с переменной окружения FPGA_TARGET_STAGES)
   python -m fpga_pipeline_generator
 
   # Указание выходного файла
@@ -36,7 +36,7 @@ options:
   python -m fpga_pipeline_generator --stages elab,synth
 
 Переменные окружения:
-  FPGA_TARGET_ARTIFACT - список стадий через запятую (elab,synth,bitstream)
+  FPGA_TARGET_STAGES - список стадий через запятую (elab,synth,bitstream)
 ```
 
 ### Ручная настройка
@@ -50,18 +50,18 @@ source venv/bin/activate
 pip install -e .
 
 # Запуск утилиты
-export FPGA_TARGET_ARTIFACT=elab (задание тестовой переменной окружения)
+export FPGA_TARGET_STAGES=elab (задание тестовой переменной окружения)
 fpga-pipeline-gen --dry-run
 ```
 
 ### Переменные окружения
 
-- `FPGA_TARGET_ARTIFACT` - список стадий через запятую (elab,synth,bitstream)
+- `FPGA_TARGET_STAGES` - список стадий через запятую (elab,synth,bitstream)
 
 
 ## 📝 Формат конфигурации
 
-### cfg.yaml (в сабмодулях) Используется только FPGA_TARGET_ARTIFACT=elab
+### cfg.yaml (в сабмодулях) Используется только FPGA_TARGET_STAGES=elab
 
 ```yaml
 elab:
@@ -78,7 +78,7 @@ synth:
     options: ["--optimize"]
 ```
 
-### Пример сгенерированного YAML с переменной окружения FPGA_TARGET_ARTIFACT=elab
+### Пример сгенерированного YAML с переменной окружения FPGA_TARGET_STAGES=elab
 
 ```yaml
 # Generated FPGA Pipeline

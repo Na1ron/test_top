@@ -145,7 +145,7 @@ class ConfigParser:
 
     def get_environment_artifacts(self) -> List[str]:
         """Получает список целевых артефактов из переменной окружения."""
-        artifacts = os.getenv("FPGA_TARGET_ARTIFACT", "")
+        artifacts = os.getenv("FPGA_TARGET_STAGES", "")
         if not artifacts:
             return []
 
