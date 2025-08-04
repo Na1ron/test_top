@@ -40,4 +40,4 @@ supported_stages: ["elab", "synth", "bitstream"]
 # Настройки поиска файлов
 file_search:
   fpga_dir: "fpga"
-  config_filename: "cfg.yaml"
+  config_filename: "fpga_builds.yaml"
