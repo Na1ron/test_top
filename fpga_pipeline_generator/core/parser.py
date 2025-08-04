@@ -58,12 +58,12 @@ class ConfigParser:
 
         # Парсим переменные - поддерживаем как 'vars', так и 'variables'
         variables = {}
-        if "variables" in target_config:
+        if "vars" in target_config:
             # Поддержка как dict, так и list формата
-            if isinstance(target_config["variables"], dict):
-                variables = target_config["variables"]
-            elif isinstance(target_config["variables"], list):
-                for var in target_config["variables"]:
+            if isinstance(target_config["vars"], dict):
+                variables = target_config["vars"]
+            elif isinstance(target_config["vars"], list):
+                for var in target_config["vars"]:
                     if isinstance(var, str) and "=" in var:
                         key, value = var.split("=", 1)
                         variables[key.strip()] = value.strip()
