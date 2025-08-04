@@ -21,7 +21,7 @@ class FPGAPipelineGenerator:
         # Получаем настройки из конфигурации
         file_search_config = self.config.get("file_search", {})
         fpga_dir = file_search_config.get("fpga_dir", "fpga")
-        config_filename = file_search_config.get("config_filename", "fpga_builds.yaml")
+        config_filename = file_search_config.get("config_filename", "fpga-builds.yaml")
 
         self.parser = ConfigParser(fpga_dir, config_filename)
         # Инициализация Jinja2 с абсолютным путем к шаблонам

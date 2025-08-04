@@ -61,7 +61,7 @@ fpga-pipeline-gen --dry-run
 
 ## 📝 Формат конфигурации
 
-### fpga_builds.yaml (в сабмодулях) Используется только FPGA_TARGET_STAGES=elab
+### fpga-builds.yaml (в сабмодулях) Используется только FPGA_TARGET_STAGES=elab
 
 ```yaml
 elab:
