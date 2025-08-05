@@ -8,6 +8,7 @@
     GIT_SUBMODULE_STRATEGY: none
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
+    - git submodule update --init --recursive
     - module load AGE
     - "echo {{ makefile_path }} {{ makefile_path | dirname }}"
     - "echo Executing: make -f {{ makefile_path | basename}} {{ make_target }}{% if variables_cli %} VARIABLES='{{ variables_cli }}'{% endif %}{% if options_cli %} OPTIONS='{{ options_cli }}'{% endif %} TARGET='{{ target_name }}'"
