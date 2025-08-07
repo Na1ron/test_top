@@ -17,23 +17,23 @@ class ConfigParser:
 
     def find_submodules(self) -> List[str]:
         """Находит все сабмодули в папке fpga."""
-        if not os.path.exists(self.fpga_dir):
+        fpga_dir = Path(self.fpga_dir)
+        if not fpga_dir.exists():
             print(f"Папка {self.fpga_dir} не найдена")
             return []
 
         submodules = []
-        for item in os.listdir(self.fpga_dir):
-            submodule_path = os.path.join(self.fpga_dir, item)
-            if os.path.isdir(submodule_path):
-                submodules.append(submodule_path)
+        for item in fpga_dir.iterdir():
+            if item.is_dir():
+                submodules.append(str(item))
 
         return submodules
 
     def find_cfg_yaml(self, submodule_path: str) -> Optional[str]:
         """Ищет файл cfg.yaml в сабмодуле."""
-        cfg_path = os.path.join(submodule_path, self.config_filename)
-        if os.path.exists(cfg_path):
-            return cfg_path
+        cfg_path = Path(submodule_path) / self.config_filename
+        if cfg_path.exists():
+            return str(cfg_path)
         return None
 
     def parse_cfg_yaml(self, cfg_path: str) -> Dict[str, Any]:

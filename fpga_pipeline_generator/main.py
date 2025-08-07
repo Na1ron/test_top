@@ -8,8 +8,8 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
-from .core.generator import FPGAPipelineGenerator
-from . import __version__
+from fpga_pipeline_generator.core.generator import FPGAPipelineGenerator
+from fpga_pipeline_generator import __version__
 
 
 def create_parser() -> argparse.ArgumentParser:
