@@ -4,12 +4,13 @@
 
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from pathlib import Path
 
 # Отключаем Jinja2 по умолчанию для корректного YAML форматирования
 JINJA2_AVAILABLE = False
 
-from .config_loader import ConfigLoader
-from .parser import ConfigParser
+from fpga_pipeline_generator.core.config_loader import ConfigLoader, DefaultConfig
+from fpga_pipeline_generator.core.parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 import os
 
@@ -19,27 +20,25 @@ class FPGAPipelineGenerator:
 
     def __init__(self, user_config_path: Optional[str] = None):
         self.config_loader = ConfigLoader()
-        self.config = self.config_loader.get_config(user_config_path)
+        self.config: DefaultConfig = self.config_loader.get_config(user_config_path)
 
         # Получаем настройки из конфигурации
-        file_search_config = self.config.get("file_search", {})
-        fpga_dir = file_search_config.get("fpga_dir", "fpga")
-        config_filename = file_search_config.get("config_filename", "cfg.yaml")
+        file_search_config = self.config.file_search
+        fpga_dir = file_search_config.fpga_dir
+        config_filename = file_search_config.config_filename
 
         self.parser = ConfigParser(fpga_dir, config_filename)
         # Инициализация Jinja2 с абсолютным путем к шаблонам
-        template_dir = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "templates")
-        )
+        template_dir = (Path(__file__).parent.parent / "templates").resolve()
         self.jinja_env = Environment(
-            loader=FileSystemLoader(template_dir),
+            loader=FileSystemLoader(str(template_dir)),
             trim_blocks=True,
             lstrip_blocks=True,
         )
 
         # Добавляем пользовательские фильтры для работы с путями
-        self.jinja_env.filters["dirname"] = lambda path: os.path.dirname(path)
-        self.jinja_env.filters["basename"] = lambda path: os.path.basename(path)
+        self.jinja_env.filters["dirname"] = lambda path: str(Path(path).parent)
+        self.jinja_env.filters["basename"] = lambda path: Path(path).name
 
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
@@ -64,8 +63,8 @@ class FPGAPipelineGenerator:
     ) -> Dict[str, Any]:
         """Подготавливает контекст для генерации задачи."""
         stage_config = self.config_loader.get_stage_config(stage, self.config)
-        default_vars = self.config.get("default_variables", {})
-        default_rules = self.config.get("default_rules", [])
+        default_vars = self.config.default_variables
+        default_rules = self.config.default_rules
 
         target_name = target_config["target"]
         target_vars = target_config["variables"]
@@ -168,9 +167,9 @@ class FPGAPipelineGenerator:
         self, stages: List[str], jobs: List[str]
     ) -> Dict[str, Any]:
         """Подготавливает контекст для генерации пайплайна."""
-        from .. import __version__
+        from fpga_pipeline_generator import __version__
 
-        global_variables = self.config.get("default_variables", {}).copy()
+        global_variables = self.config.default_variables.copy()
         global_variables["FPGA_TARGET_ARTIFACT"] = ",".join(stages)
 
         return {
@@ -221,7 +220,7 @@ class FPGAPipelineGenerator:
     ) -> bool:
         """Сохраняет пайплайн в файл."""
         if not output_file:
-            output_config = self.config.get("output", {})
+            output_config = self.config.output
             output_file = output_config.get(
                 "default_filename", "generated_pipeline.yml"
             )

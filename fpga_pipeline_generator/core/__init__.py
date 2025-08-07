@@ -2,9 +2,9 @@
 Ядро FPGA Pipeline Generator
 """
 
-from .config_loader import ConfigLoader
-from .parser import ConfigParser
-from .generator import FPGAPipelineGenerator
+from fpga_pipeline_generator.core.config_loader import ConfigLoader
+from fpga_pipeline_generator.core.parser import ConfigParser
+from fpga_pipeline_generator.core.generator import FPGAPipelineGenerator
 
 __all__ = [
     "ConfigLoader",

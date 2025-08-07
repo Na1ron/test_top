@@ -4,10 +4,10 @@
 """
 
 import sys
-import os
+from pathlib import Path
 
 # Добавляем текущую директорию в путь для импорта
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from fpga_pipeline_generator.main import main
 
