@@ -16,9 +16,6 @@ class StageConfig:
     make_target: str
     description: str
 
-    def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)
-
 
 @dataclass(frozen=True)
 class TemplatesConfig:
@@ -30,9 +27,6 @@ class TemplatesConfig:
 class OutputConfig:
     indent: int
     default_filename: str
-
-    def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)
 
 
 @dataclass(frozen=True)
@@ -105,10 +99,16 @@ class ConfigLoader:
         base = deepcopy(self.default_config)
         # stages
         if "stages" in user_config:
-            stages = {
-                **{k: v for k, v in base.stages.items()},
-                **{k: StageConfig(**v) for k, v in user_config["stages"].items()},
-            }
+            stages = {**{k: v for k, v in base.stages.items()}}
+            for stage_name, stage_overrides in user_config["stages"].items():
+                if stage_name in base.stages:
+                    # Позволяем частичные переопределения существующих стадий
+                    current = base.stages[stage_name]
+                    merged_dict = {**current.__dict__, **stage_overrides}
+                    stages[stage_name] = StageConfig(**merged_dict)
+                else:
+                    # Для новых стадий требуется полное описание
+                    stages[stage_name] = StageConfig(**stage_overrides)
         else:
             stages = base.stages
         # default_rules
