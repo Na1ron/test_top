@@ -16,9 +16,6 @@ class StageConfig:
     make_target: str
     description: str
 
-    def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)
-
 
 @dataclass(frozen=True)
 class TemplatesConfig:
@@ -30,9 +27,6 @@ class TemplatesConfig:
 class OutputConfig:
     indent: int
     default_filename: str
-
-    def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)
 
 
 @dataclass(frozen=True)
