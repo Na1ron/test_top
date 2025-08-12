@@ -1,5 +1,5 @@
 """
-Модуль для парсинга fpga-builds.yaml файлов из сабмодулей.
+Модуль для парсинга cfg.yaml файлов из сабмодулей.
 """
 
 import os
@@ -9,37 +9,35 @@ from typing import Dict, List, Any, Optional, Tuple
 
 
 class ConfigParser:
-    """Класс для парсинга конфигурационных файлов fpga-builds.yaml."""
+    """Класс для парсинга конфигурационных файлов cfg.yaml."""
 
-    def __init__(
-        self, fpga_dir: str = "fpga", config_filename: str = "fpga-builds.yaml"
-    ):
+    def __init__(self, fpga_dir: str = "fpga", config_filename: str = "cfg.yaml"):
         self.fpga_dir = fpga_dir
         self.config_filename = config_filename
 
     def find_submodules(self) -> List[str]:
         """Находит все сабмодули в папке fpga."""
-        if not os.path.exists(self.fpga_dir):
+        fpga_dir = Path(self.fpga_dir)
+        if not fpga_dir.exists():
             print(f"Папка {self.fpga_dir} не найдена")
             return []
 
         submodules = []
-        for item in os.listdir(self.fpga_dir):
-            submodule_path = os.path.join(self.fpga_dir, item)
-            if os.path.isdir(submodule_path):
-                submodules.append(submodule_path)
+        for item in fpga_dir.iterdir():
+            if item.is_dir():
+                submodules.append(str(item))
 
         return submodules
 
     def find_cfg_yaml(self, submodule_path: str) -> Optional[str]:
-        """Ищет файл fpga-builds.yaml в сабмодуле."""
-        cfg_path = os.path.join(submodule_path, self.config_filename)
-        if os.path.exists(cfg_path):
-            return cfg_path
+        """Ищет файл cfg.yaml в сабмодуле."""
+        cfg_path = Path(submodule_path) / self.config_filename
+        if cfg_path.exists():
+            return str(cfg_path)
         return None
 
     def parse_cfg_yaml(self, cfg_path: str) -> Dict[str, Any]:
-        """Парсит fpga-builds.yaml файл."""
+        """Парсит cfg.yaml файл."""
         try:
             with open(cfg_path, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f) or {}
@@ -108,7 +106,7 @@ class ConfigParser:
             cfg_path = self.find_cfg_yaml(submodule_path)
 
             if not cfg_path:
-                print(f"fpga-builds.yaml не найден в сабмодуле {submodule_name}")
+                print(f"cfg.yaml не найден в сабмодуле {submodule_name}")
                 continue
 
             cfg_data = self.parse_cfg_yaml(cfg_path)

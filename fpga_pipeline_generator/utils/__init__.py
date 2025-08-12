@@ -2,6 +2,6 @@
 Утилиты для FPGA Pipeline Generator
 """
 
-from .file_utils import FileUtils
+from fpga_pipeline_generator.utils.file_utils import FileUtils
 
 __all__ = ["FileUtils"]
