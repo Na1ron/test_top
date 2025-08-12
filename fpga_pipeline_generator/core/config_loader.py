@@ -67,6 +67,7 @@ DEFAULT_CONFIG = DefaultConfig(
         ),
     },
     default_rules=[{"when": "always"}],
+    default_variables={},
     templates=TemplatesConfig(pipeline="pipeline.j2", job="job.j2"),
     output=OutputConfig(indent=2, default_filename="generated_pipeline.yml"),
     supported_stages=["elab", "synth", "bitstream"],
