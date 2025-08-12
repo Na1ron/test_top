@@ -16,6 +16,9 @@ class StageConfig:
     make_target: str
     description: str
 
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
+
 
 @dataclass(frozen=True)
 class TemplatesConfig:
@@ -27,6 +30,9 @@ class TemplatesConfig:
 class OutputConfig:
     indent: int
     default_filename: str
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
 
 
 @dataclass(frozen=True)
@@ -68,7 +74,7 @@ DEFAULT_CONFIG = DefaultConfig(
     templates=TemplatesConfig(pipeline="pipeline.j2", job="job.j2"),
     output=OutputConfig(indent=2, default_filename="generated_pipeline.yml"),
     supported_stages=["elab", "synth", "bitstream"],
-    file_search=FileSearchConfig(fpga_dir="fpga", config_filename="cfg.yaml"),
+    file_search=FileSearchConfig(fpga_dir="fpga", config_filename="fpga-builds.yaml"),
 )
 
 
