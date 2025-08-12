@@ -67,10 +67,6 @@ DEFAULT_CONFIG = DefaultConfig(
         ),
     },
     default_rules=[{"when": "always"}],
-    default_variables={
-        "FPGA_WORKSPACE": "/workspace",
-        "MAKEFILE_PATH": "Makefile",
-    },
     templates=TemplatesConfig(pipeline="pipeline.j2", job="job.j2"),
     output=OutputConfig(indent=2, default_filename="generated_pipeline.yml"),
     supported_stages=["elab", "synth", "bitstream"],
