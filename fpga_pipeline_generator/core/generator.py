@@ -5,7 +5,11 @@
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from pathlib import Path
-from fpga_pipeline_generator.core.config_loader import ConfigLoader, DefaultConfig
+from fpga_pipeline_generator.core.config_loader import (
+    ConfigLoader,
+    DefaultConfig,
+    StageConfig,
+)
 from fpga_pipeline_generator.core.parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 import os
@@ -58,7 +62,12 @@ class FPGAPipelineGenerator:
         submodule_path: str,
     ) -> Dict[str, Any]:
         """Подготавливает контекст для генерации задачи."""
-        stage_config = self.config_loader.get_stage_config(stage, self.config)
+        stage_config: Optional[StageConfig] = self.config_loader.get_stage_config(
+            stage, self.config
+        )
+        if stage_config is None:
+            raise ValueError(f"Конфигурация стадии '{stage}' не найдена в конфигурации")
+
         default_vars = self.config.default_variables
         default_rules = self.config.default_rules
 
@@ -118,8 +127,8 @@ class FPGAPipelineGenerator:
             "job_name": self.generate_job_name(stage, target_name, submodule),
             "stage": stage,
             "target_name": target_name,
-            "tags": stage_config.get("tags", [f"fpga-{stage}"]),
-            "make_target": stage_config.get("make_target", stage),
+            "tags": stage_config.tags,
+            "make_target": stage_config.make_target,
             "make_args": make_args.strip(),
             "makefile_path": makefile_path,
             "target_vars": target_vars,
@@ -216,9 +225,7 @@ class FPGAPipelineGenerator:
         """Сохраняет пайплайн в файл."""
         if not output_file:
             output_config = self.config.output
-            output_file = output_config.get(
-                "default_filename", "generated_pipeline.yml"
-            )
+            output_file = output_config.default_filename
 
         try:
             with open(output_file, "w", encoding="utf-8") as f:
