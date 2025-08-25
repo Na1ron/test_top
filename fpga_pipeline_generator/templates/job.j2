@@ -8,6 +8,8 @@
     GIT_SUBMODULE_STRATEGY: none
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
   script:
+    - git fetch --tags --force
+    - if [ -n "$CI_COMMIT_TAG" ]; then git checkout "$CI_COMMIT_TAG"; else TAG=$(git describe --tags --exact-match 2>/dev/null || true); if [ -n "$TAG" ]; then git checkout "$TAG"; fi; fi
     - git submodule update --init --recursive
     - module load AGE
     - "echo {{ makefile_path }} {{ makefile_path | dirname }}"
