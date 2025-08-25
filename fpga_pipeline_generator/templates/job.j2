@@ -7,6 +7,16 @@
     GIT_STRATEGY: clone
     GIT_SUBMODULE_STRATEGY: none
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+{% if SEMVER_BUMP_FPGA is defined and (SEMVER_BUMP_FPGA == true or (SEMVER_BUMP_FPGA is string and SEMVER_BUMP_FPGA | lower == 'true')) %}
+  before_script:
+    - git fetch --tags
+    - 'exists=`git show-ref refs/heads/master` && if [ -n "$exists" ]; then git branch -D master; fi'
+    - git checkout master
+    - git rev-parse HEAD
+    - git pull
+    - git tag
+    - git submodule update --init --recursive fpga/
+{% endif %}
   script:
     - git submodule update --init --recursive
     - module load AGE
