@@ -16,6 +16,9 @@
     - git pull
     - git tag
     - git submodule update --init --recursive fpga/
+{% if LATEST_REPO_TAG is defined %}
+    - git checkout "{{ LATEST_REPO_TAG }}"
+{% endif %}
 {% endif %}
   script:
     - git submodule update --init --recursive

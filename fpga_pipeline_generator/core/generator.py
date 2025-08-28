@@ -13,6 +13,7 @@ from fpga_pipeline_generator.core.config_loader import (
 from fpga_pipeline_generator.core.parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 import os
+import subprocess
 
 
 class FPGAPipelineGenerator:
@@ -53,6 +54,29 @@ class FPGAPipelineGenerator:
     def generate_job_name(self, stage: str, target: str, submodule: str) -> str:
         """Генерирует имя задачи."""
         return f"{stage}/{target}/{submodule}"
+
+    def _get_latest_git_tag(self) -> Optional[str]:
+        """Возвращает последний тег из текущего репозитория или None, если теги отсутствуют.
+
+        Метод пытается найти последний тег по коммиту, на который указывает список тегов.
+        Используется связка `git rev-list --tags --max-count=1` и `git describe --tags`.
+        """
+        try:
+            latest_tag_commit_bytes = subprocess.check_output(
+                ["git", "rev-list", "--tags", "--max-count=1"], stderr=subprocess.DEVNULL
+            )
+            latest_tag_commit = latest_tag_commit_bytes.decode().strip()
+            if not latest_tag_commit:
+                return None
+
+            latest_tag_bytes = subprocess.check_output(
+                ["git", "describe", "--tags", latest_tag_commit], stderr=subprocess.DEVNULL
+            )
+            latest_tag = latest_tag_bytes.decode().strip()
+            return latest_tag or None
+        except Exception:
+            # В случае отсутствия git/тегов или любой ошибки просто не возвращаем тег
+            return None
 
     def prepare_job_context(
         self,
@@ -146,6 +170,11 @@ class FPGAPipelineGenerator:
         semver_bump_fpga_env = os.getenv("SEMVER_BUMP_FPGA")
         if semver_bump_fpga_env is not None:
             job_context["SEMVER_BUMP_FPGA"] = semver_bump_fpga_env
+
+            # Если нужно бампать семвер, пробуем узнать последний тег и передать его в шаблон
+            latest_repo_tag = self._get_latest_git_tag()
+            if latest_repo_tag:
+                job_context["LATEST_REPO_TAG"] = latest_repo_tag
 
         return job_context
 
