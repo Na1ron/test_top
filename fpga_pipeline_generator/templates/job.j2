@@ -16,6 +16,8 @@
     - git pull
     - git tag
     - git submodule update --init --recursive fpga/
+    - LATEST_TAG=$(git describe --tags "$(git rev-list --tags --max-count=1)")
+    - git checkout "$LATEST_TAG"
 {% endif %}
   script:
     - git submodule update --init --recursive
