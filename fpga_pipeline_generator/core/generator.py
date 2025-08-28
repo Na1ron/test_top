@@ -123,7 +123,7 @@ class FPGAPipelineGenerator:
             submodule_path, default_vars.get("MAKEFILE_PATH", "Makefile")
         )
 
-        return {
+        job_context: Dict[str, Any] = {
             "job_name": self.generate_job_name(stage, target_name, submodule),
             "stage": stage,
             "target_name": target_name,
@@ -140,6 +140,14 @@ class FPGAPipelineGenerator:
             "rules": default_rules,
             "job_variables": job_variables,
         }
+
+        # Пробрасываем переменную окружения SEMVER_BUMP_FPGA в контекст шаблона,
+        # только если она определена в окружении
+        semver_bump_fpga_env = os.getenv("SEMVER_BUMP_FPGA")
+        if semver_bump_fpga_env is not None:
+            job_context["SEMVER_BUMP_FPGA"] = semver_bump_fpga_env
+
+        return job_context
 
     def render_job_with_template(self, job_context: Dict[str, Any]) -> str:
         """Рендерит задачу используя Jinja2 шаблон."""
