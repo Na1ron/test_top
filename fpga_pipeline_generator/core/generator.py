@@ -13,6 +13,7 @@ from fpga_pipeline_generator.core.config_loader import (
 from fpga_pipeline_generator.core.parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 import os
+import subprocess
 
 
 class FPGAPipelineGenerator:
@@ -39,6 +40,32 @@ class FPGAPipelineGenerator:
         # Добавляем пользовательские фильтры для работы с путями
         self.jinja_env.filters["dirname"] = lambda path: str(Path(path).parent)
         self.jinja_env.filters["basename"] = lambda path: Path(path).name
+
+    def _get_latest_git_tag(self) -> Optional[str]:
+        """Возвращает последний тег из Git-репозитория, если доступно."""
+        try:
+            result = subprocess.run(
+                ["git", "describe", "--tags", "--abbrev=0"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            tag = result.stdout.strip()
+            return tag if tag else None
+        except Exception:
+            try:
+                result = subprocess.run(
+                    ["git", "tag", "--sort=-creatordate"],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                tags = [t.strip() for t in result.stdout.splitlines() if t.strip()]
+                return tags[0] if tags else None
+            except Exception:
+                return None
 
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
@@ -146,6 +173,10 @@ class FPGAPipelineGenerator:
         semver_bump_fpga_env = os.getenv("SEMVER_BUMP_FPGA")
         if semver_bump_fpga_env is not None:
             job_context["SEMVER_BUMP_FPGA"] = semver_bump_fpga_env
+            # Если включена логика SEMVER_BUMP_FPGA, попробуем получить последний тег репозитория
+            latest_tag = self._get_latest_git_tag()
+            if latest_tag:
+                job_context["SEMVER_BUMP_FPGA_TAG"] = latest_tag
 
         return job_context
 

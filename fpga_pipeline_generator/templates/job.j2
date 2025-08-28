@@ -16,6 +16,9 @@
     - git pull
     - git tag
     - git submodule update --init --recursive fpga/
+    {% if SEMVER_BUMP_FPGA_TAG is defined %}
+    - git checkout {{ SEMVER_BUMP_FPGA_TAG }}
+    {% endif %}
 {% endif %}
   script:
     - git submodule update --init --recursive
