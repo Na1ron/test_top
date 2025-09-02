@@ -13,6 +13,7 @@ from fpga_pipeline_generator.core.config_loader import (
 from fpga_pipeline_generator.core.parser import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 import os
+import subprocess
 
 
 class FPGAPipelineGenerator:
@@ -21,6 +22,7 @@ class FPGAPipelineGenerator:
     def __init__(self, user_config_path: Optional[str] = None):
         self.config_loader = ConfigLoader()
         self.config: DefaultConfig = self.config_loader.get_config(user_config_path)
+        self.current_tag: Optional[str] = self._detect_current_tag()
 
         # Получаем настройки из конфигурации
         file_search_config = self.config.file_search
@@ -39,6 +41,34 @@ class FPGAPipelineGenerator:
         # Добавляем пользовательские фильтры для работы с путями
         self.jinja_env.filters["dirname"] = lambda path: str(Path(path).parent)
         self.jinja_env.filters["basename"] = lambda path: Path(path).name
+
+    def _detect_current_tag(self) -> Optional[str]:
+        """Определяет текущий git тег на момент запуска генератора.
+
+        Приоритеты определения:
+        1) Переменная окружения CI_COMMIT_TAG (если генератор запускается в CI по тегу)
+        2) Тег, который точно соответствует текущему коммиту (git describe --tags --exact-match)
+        """
+        # 1) Из переменной окружения CI
+        env_tag = os.getenv("CI_COMMIT_TAG", "").strip()
+        if env_tag:
+            return env_tag
+
+        # 2) Из локального git репозитория
+        try:
+            result = subprocess.run(
+                ["git", "describe", "--tags", "--exact-match"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            tag = result.stdout.strip()
+            if result.returncode == 0 and tag:
+                return tag
+        except Exception:
+            pass
+
+        return None
 
     def get_target_stages(self) -> List[str]:
         """Получает целевые стадии из переменной окружения."""
@@ -139,6 +169,7 @@ class FPGAPipelineGenerator:
             "options_cli": options_cli if options_cli else None,
             "rules": default_rules,
             "job_variables": job_variables,
+            "current_tag": self.current_tag,
         }
 
         # Пробрасываем переменную окружения SEMVER_BUMP_FPGA в контекст шаблона,

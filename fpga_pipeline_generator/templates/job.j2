@@ -6,6 +6,7 @@
     UV_PYTHON: "python3.11"
     GIT_STRATEGY: clone
     GIT_SUBMODULE_STRATEGY: none
+    {% if current_tag %}CURRENT_GIT_TAG: "{{ current_tag }}"{% endif %}
   tags: [{% for tag in tags %}"{{ tag }}"{% if not loop.last %}, {% endif %}{% endfor %}]
 {% if SEMVER_BUMP_FPGA is defined and (SEMVER_BUMP_FPGA == true or (SEMVER_BUMP_FPGA is string and SEMVER_BUMP_FPGA | lower == 'true')) %}
   before_script:
@@ -18,6 +19,8 @@
     - git submodule update --init --recursive fpga/
 {% endif %}
   script:
+    - git fetch --tags --force
+    {% if current_tag %}- git checkout "{{ current_tag }}"{% else %}- echo "No exact git tag detected at generation time"{% endif %}
     - git submodule update --init --recursive
     - module load AGE
     - "echo {{ makefile_path }} {{ makefile_path | dirname }}"
