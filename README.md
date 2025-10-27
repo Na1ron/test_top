@@ -6,7 +6,7 @@
 
 ```bash
 fpga-pipeline-gen --help
-usage: fpga-pipeline-gen [-h] [-o OUTPUT] [-c CONFIG] [--stages STAGES] [--fpga-dir FPGA_DIR] [--dry-run] [--verbose] [--version]
+usage: fpga-pipeline-gen [-h] [-o OUTPUT] [--stages STAGES] [--fpga-dir FPGA_DIR] [--dry-run] [--verbose] [--version]
 
 FPGA Pipeline Generator - генерирует динамические CI/CD пайплайны для FPGA проектов
 
@@ -14,8 +14,6 @@ options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
                         Путь к выходному файлу (по умолчанию: generated_pipeline.yml)
-  -c CONFIG, --config CONFIG
-                        Путь к пользовательскому файлу конфигурации
   --stages STAGES       Список стадий через запятую (переопределяет FPGA_TARGET_STAGES)
   --fpga-dir FPGA_DIR   Директория с FPGA сабмодулями (по умолчанию: fpga)
   --dry-run             Не сохранять файл, только вывести результат
@@ -29,8 +27,7 @@ options:
   # Указание выходного файла
   python -m fpga_pipeline_generator -o my_pipeline.yml
 
-  # Использование пользовательской конфигурации
-  python -m fpga_pipeline_generator -c custom_config.yaml
+  # Пользовательская конфигурация удалена; используется только дефолтная
 
   # Установка целевых артефактов через аргумент
   python -m fpga_pipeline_generator --stages elab,synth

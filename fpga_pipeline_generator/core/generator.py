@@ -3,7 +3,7 @@
 """
 
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from pathlib import Path
 from fpga_pipeline_generator.core.config_loader import (
     ConfigLoader,
@@ -18,9 +18,9 @@ import os
 class FPGAPipelineGenerator:
     """Основной класс для генерации FPGA пайплайнов."""
 
-    def __init__(self, user_config_path: Optional[str] = None):
+    def __init__(self):
         self.config_loader = ConfigLoader()
-        self.config: DefaultConfig = self.config_loader.get_config(user_config_path)
+        self.config: DefaultConfig = self.config_loader.get_config()
 
         # Получаем настройки из конфигурации
         file_search_config = self.config.file_search

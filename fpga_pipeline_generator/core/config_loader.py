@@ -2,12 +2,9 @@
 Модуль для загрузки и обработки конфигурационных файлов.
 """
 
-import os
-import yaml
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional
-from copy import deepcopy
+from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass(frozen=True)
@@ -75,77 +72,8 @@ class ConfigLoader:
     def __init__(self):
         self.default_config = DEFAULT_CONFIG
 
-    def load_user_config(self, config_path: Optional[str] = None) -> Dict[str, Any]:
-        if not config_path:
-            return {}
-        path = Path(config_path)
-        if not path.exists():
-            print(f"Пользовательский конфиг {config_path} не найден")
-            return {}
-        try:
-            import yaml
-
-            with open(path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        except Exception as e:
-            print(f"Ошибка парсинга пользовательского конфига: {e}")
-            return {}
-
-    def merge_configs(self, user_config: Dict[str, Any]) -> DefaultConfig:
-        # Преобразуем user_config в структуру DefaultConfig, переопределяя только те поля, что есть в user_config
-        base = deepcopy(self.default_config)
-        # stages
-        if "stages" in user_config:
-            stages = {**{k: v for k, v in base.stages.items()}}
-            for stage_name, stage_overrides in user_config["stages"].items():
-                if stage_name in base.stages:
-                    # Позволяем частичные переопределения существующих стадий
-                    current = base.stages[stage_name]
-                    merged_dict = {**current.__dict__, **stage_overrides}
-                    stages[stage_name] = StageConfig(**merged_dict)
-                else:
-                    # Для новых стадий требуется полное описание
-                    stages[stage_name] = StageConfig(**stage_overrides)
-        else:
-            stages = base.stages
-        # default_rules
-        default_rules = user_config.get("default_rules", base.default_rules)
-        # default_variables
-        default_variables = {
-            **base.default_variables,
-            **user_config.get("default_variables", {}),
-        }
-        # templates
-        templates = base.templates
-        if "templates" in user_config:
-            templates = TemplatesConfig(
-                **{**base.templates.__dict__, **user_config["templates"]}
-            )
-        # output
-        output = base.output
-        if "output" in user_config:
-            output = OutputConfig(**{**base.output.__dict__, **user_config["output"]})
-        # supported_stages
-        supported_stages = user_config.get("supported_stages", base.supported_stages)
-        # file_search
-        file_search = base.file_search
-        if "file_search" in user_config:
-            file_search = FileSearchConfig(
-                **{**base.file_search.__dict__, **user_config["file_search"]}
-            )
-        return DefaultConfig(
-            stages=stages,
-            default_rules=default_rules,
-            default_variables=default_variables,
-            templates=templates,
-            output=output,
-            supported_stages=supported_stages,
-            file_search=file_search,
-        )
-
-    def get_config(self, user_config_path: Optional[str] = None) -> DefaultConfig:
-        user_config = self.load_user_config(user_config_path)
-        return self.merge_configs(user_config)
+    def get_config(self) -> DefaultConfig:
+        return self.default_config
 
     def get_stage_config(self, stage: str, config: DefaultConfig) -> StageConfig:
         return config.stages.get(stage, None)

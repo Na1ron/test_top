@@ -24,9 +24,6 @@ def create_parser() -> argparse.ArgumentParser:
   # Указание выходного файла
   python -m fpga_pipeline_generator -o my_pipeline.yml
   
-  # Использование пользовательской конфигурации
-  python -m fpga_pipeline_generator -c custom_config.yaml
-  
   # Установка целевых артефактов через аргумент
   python -m fpga_pipeline_generator --stages elab,synth
   
@@ -42,9 +39,7 @@ def create_parser() -> argparse.ArgumentParser:
         help="Путь к выходному файлу (по умолчанию: generated_pipeline.yml)",
     )
 
-    parser.add_argument(
-        "-c", "--config", type=str, help="Путь к пользовательскому файлу конфигурации"
-    )
+    # Пользовательская конфигурация удалена; используется только дефолтная
 
     parser.add_argument(
         "--stages",
@@ -100,8 +95,8 @@ def main() -> int:
         # Настраиваем окружение
         setup_environment(args)
 
-        # Создаем генератор
-        generator = FPGAPipelineGenerator(args.config)
+        # Создаем генератор (пользовательская конфигурация больше не поддерживается)
+        generator = FPGAPipelineGenerator()
 
         # Генерируем пайплайн
         pipeline_content = generator.generate_pipeline()
